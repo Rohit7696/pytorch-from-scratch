@@ -1,2 +1,23 @@
-# pytorch-from-scratch
-Documenting my daily journey of learning PyTorch from absolute zero. Day-by-day notes, code, and projects covering tensors, neural networks, CNNs, NLP, transformers, and beyond.
+# PyTorch From Scratch
+
+A daily documented journey of learning PyTorch from absolute zero.
+Each day covers a new topic with detailed notes, code examples,
+and hands-on exercises.
+
+## Progress
+
+| Day | Topic | Status |
+|-----|-------|--------|
+| 01  | Introduction to PyTorch | ✅ Done |
+| 02  | Tensors Deep Dive | ✅ Done |
+| 03  | Tensor Operations & Math | ⬜ Next |
+
+## Goal
+
+Build a solid foundation in PyTorch and deep learning through
+consistent daily practice and documentation.
+
+## Connect
+
+- [LinkedIn](https://www.linkedin.com/in/rohit--pawar/)
+- [GitHub](https://github.com/rohit7696)
