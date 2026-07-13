@@ -10,7 +10,7 @@ and hands-on exercises.
 |-----|-------|--------|
 | 01  | Introduction to PyTorch | ✅ Done |
 | 02  | Tensors Deep Dive | ✅ Done |
-| 03  | Tensor Operations & Math | ⬜ Next |
+| 03  | PyTorch Auto-grad | ⬜ Next |
 
 ## Goal
 
