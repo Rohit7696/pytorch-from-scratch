@@ -6,11 +6,11 @@ and hands-on exercises.
 
 ## Progress
 
-| Day | Topic | Status | Preview |
-|-----|-------|--------|---------|
-| 01  | Introduction to PyTorch | ✅ Done | [View](https://shorturl.at/smeRY) |
-| 02  | Tensors Deep Dive | ✅ Done | ⬜ Add Link |
-| 03  | PyTorch Auto-grad | ⬜ Next | - |
+| Day | Topic | Status | Docs | Video |
+|-----|-------|--------|------|-------|
+| 01  | Introduction to PyTorch | ✅ Done | [View](https://shorturl.at/smeRY) | [Watch](https://youtu.be/Hq4CuUCLHao?si=yriwSjxZIENuBCac) |
+| 02  | Tensors Deep Dive | ✅ Done | ⬜ Add Link | ⬜ Add Link |
+| 03  | PyTorch Auto-grad | ⬜ Next | - | - |
 
 ## Goal
 
