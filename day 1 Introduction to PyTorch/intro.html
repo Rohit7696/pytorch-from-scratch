@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to PyTorch — Day 1 Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --accent: #e85d04;
+    --accent-light: #fff3e6;
+    --accent-dark: #c44d03;
+    --navy: #1b2838;
+    --navy-light: #2d3f54;
+    --text: #1a1a1a;
+    --text-muted: #6b6560;
+    --border: #e8e3dc;
+    --code-bg: #1e1e2e;
+    --code-text: #cdd6f4;
+    --green: #40a02b;
+    --blue: #1e66f5;
+    --red: #d20f39;
+    --purple: #8839ef;
+    --yellow: #df8e1d;
+    --page-width: 210mm;
+  }
+
+  @page {
+    size: A4;
+    margin: 18mm 20mm;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .document {
+    max-width: var(--page-width);
+    margin: 0 auto;
+    background: var(--surface);
+    box-shadow: 0 0 60px rgba(0,0,0,0.06);
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 50px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #1b2838 0%, #0f1923 40%, #1a0e05 100%);
+    color: #fff;
+    page-break-after: always;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(232,93,4,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(30,102,245,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(136,57,239,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .cover-badge {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    border: 1.5px solid rgba(232,93,4,0.5);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 8px 24px;
+    border-radius: 4px;
+    margin-bottom: 40px;
+  }
+
+  .cover h1 {
+    position: relative;
+    z-index: 1;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+
+  .cover h1 span {
+    display: block;
+    background: linear-gradient(135deg, #e85d04 0%, #ffba08 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-subtitle {
+    position: relative;
+    z-index: 1;
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.6);
+    max-width: 440px;
+    margin: 20px auto 50px;
+    line-height: 1.6;
+  }
+
+  .cover-meta {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 30px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+
+  .cover-meta strong {
+    display: block;
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  /* ── CONTENT PAGES ── */
+  .page {
+    padding: 50px 55px;
+    page-break-after: always;
+    position: relative;
+  }
+
+  .page-number {
+    position: absolute;
+    bottom: 30px;
+    right: 55px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  .page-number::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--border);
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--navy);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  h2 .chapter-num {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--navy);
+    margin-top: 32px;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--navy-light);
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .lead {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--text-muted);
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    margin-bottom: 28px;
+    line-height: 1.8;
+  }
+
+  .divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    margin: 36px 0;
+  }
+
+  .accent-line {
+    width: 40px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+
+  /* ── STORY BLOCK ── */
+  .story-block {
+    background: linear-gradient(135deg, #fdf8f0 0%, #fef6ee 100%);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 24px 28px;
+    margin: 24px 0;
+    font-style: italic;
+    font-size: 15px;
+    color: #5a4a3a;
+    line-height: 1.85;
+  }
+
+  .story-block strong {
+    color: var(--accent-dark);
+    font-style: normal;
+  }
+
+  .story-block .year-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    margin-right: 6px;
+  }
+
+  /* ── QUOTE BLOCK ── */
+  .quote-block {
+    position: relative;
+    margin: 30px 0;
+    padding: 28px 32px;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  .quote-block::before {
+    content: '"';
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    color: var(--accent);
+    opacity: 0.6;
+    line-height: 1;
+  }
+
+  .quote-block .quote-author {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 18px 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    border: 1px solid #313244;
+  }
+
+  pre .comment { color: #6c7086; font-style: italic; }
+  pre .keyword { color: #cba6f7; }
+  pre .string { color: #a6e3a1; }
+  pre .function { color: #89b4fa; }
+  pre .number { color: #fab387; }
+  pre .class { color: #f9e2af; }
+  pre .op { color: #89dceb; }
+  pre .decorator { color: #f38ba8; }
+  pre .builtin { color: #94e2d5; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: #f0ece4;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--accent-dark);
+  }
+
+  .code-label {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13.5px;
+  }
+
+  thead th {
+    background: var(--navy);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child { border-radius: 0 6px 0 0; }
+
+  tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:nth-child(even) { background: #faf8f4; }
+  tbody tr:hover { background: var(--accent-light); }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    position: relative;
+    margin: 30px 0 30px 20px;
+    padding-left: 30px;
+    border-left: 2px solid var(--accent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+    padding-left: 8px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -37px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .timeline-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .timeline-title {
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .timeline-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── INFO CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-icon {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 18px;
+    text-align: center;
+    line-height: 36px;
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ── FEATURE LIST ── */
+  .feature-list {
+    list-style: none;
+    margin: 16px 0;
+  }
+
+  .feature-list li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 12px;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .feature-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  /* ── COMPARISON BOX ── */
+  .vs-box {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    margin: 24px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+
+  .vs-side {
+    padding: 24px;
+  }
+
+  .vs-side.left { background: #fdf8f0; }
+  .vs-side.right { background: #f0f4fd; }
+
+  .vs-side h4 {
+    margin-top: 0;
+    font-size: 14px;
+  }
+
+  .vs-side p, .vs-side li {
+    font-size: 13px;
+  }
+
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--navy);
+    color: var(--accent);
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 0 16px;
+  }
+
+  .vs-side ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .vs-side ul li {
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .vs-side ul li::before {
+    content: '•';
+    color: var(--accent);
+    margin-right: 8px;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 30px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+
+  .arch-layer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .arch-block {
+    flex: 1;
+    text-align: center;
+    padding: 14px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .arch-block.l1 { background: linear-gradient(135deg, #e85d04, #c44d03); }
+  .arch-block.l2 { background: linear-gradient(135deg, #8839ef, #7230d4); }
+  .arch-block.l3 { background: linear-gradient(135deg, #1e66f5, #1754d4); }
+  .arch-block.l4 { background: linear-gradient(135deg, #40a02b, #348a23); }
+  .arch-block.l5 { background: linear-gradient(135deg, #df8e1d, #c77c17); }
+  .arch-block.l6 { background: linear-gradient(135deg, #d20f39, #b50d31); }
+
+  .arch-arrow {
+    text-align: center;
+    color: rgba(255,255,255,0.3);
+    font-size: 16px;
+    margin: 4px 0;
+  }
+
+  /* ── TRAINING LOOP DIAGRAM ── */
+  .loop-diagram {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin: 24px 0;
+  }
+
+  .loop-step {
+    text-align: center;
+    padding: 16px 8px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    position: relative;
+  }
+
+  .loop-step .step-num {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 28px;
+    margin-bottom: 8px;
+  }
+
+  .loop-step .step-title {
+    display: block;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .loop-step .step-code {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 3px 6px;
+    border-radius: 3px;
+    margin-top: 6px;
+  }
+
+  /* ── ECOSYSTEM MAP ── */
+  .eco-map {
+    position: relative;
+    text-align: center;
+    margin: 24px 0;
+    padding: 30px 20px;
+  }
+
+  .eco-core {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 16px 32px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  .eco-branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .eco-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 10px;
+    font-size: 12px;
+  }
+
+  .eco-item strong {
+    display: block;
+    font-size: 13px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .eco-item span {
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  /* ── CALLOUT BOX ── */
+  .callout {
+    background: linear-gradient(135deg, #eef6ff 0%, #f0f4fd 100%);
+    border-left: 4px solid var(--blue);
+    border-radius: 0 8px 8px 0;
+    padding: 18px 22px;
+    margin: 20px 0;
+    font-size: 13.5px;
+    color: #1a3a5c;
+    line-height: 1.7;
+  }
+
+  .callout.warning {
+    background: linear-gradient(135deg, #fff8e6 0%, #fef6ee 100%);
+    border-left-color: var(--yellow);
+    color: #5a4a1a;
+  }
+
+  .callout.success {
+    background: linear-gradient(135deg, #eefbe6 0%, #f0faf0 100%);
+    border-left-color: var(--green);
+    color: #1a4a1a;
+  }
+
+  .callout strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  /* ── PERSON CARD ── */
+  .person-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .person-card {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    background: #faf8f4;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .person-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .person-info strong {
+    display: block;
+    font-size: 14px;
+    color: var(--navy);
+  }
+
+  .person-info span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── ROADMAP ── */
+  .roadmap {
+    margin: 20px 0;
+  }
+
+  .roadmap-week {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+
+  .roadmap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding-top: 4px;
+    border-right: 2px solid var(--border);
+    padding-right: 16px;
+    text-align: right;
+  }
+
+  .roadmap-items {
+    list-style: none;
+  }
+
+  .roadmap-items li {
+    padding: 6px 0;
+    font-size: 13.5px;
+    color: var(--text);
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .roadmap-items li:last-child { border-bottom: none; }
+
+  .roadmap-items li::before {
+    content: '→';
+    color: var(--accent);
+    margin-right: 10px;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    margin: 20px 0 30px;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dotted var(--border);
+    font-size: 14px;
+  }
+
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    min-width: 24px;
+  }
+
+  .toc-title {
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .toc-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    text-align: center;
+    padding: 40px 50px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .doc-footer .heart { color: var(--accent); }
+
+  /* ── ANIMATIONS ── */
+  .page { animation: fadeIn 0.5s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 800px) {
+    .page { padding: 30px 24px; }
+    .cover { padding: 40px 24px; }
+    .cover h1 { font-size: 34px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .vs-box { grid-template-columns: 1fr; }
+    .vs-divider { padding: 10px; }
+    .loop-diagram { grid-template-columns: 1fr 1fr; }
+    .person-grid { grid-template-columns: 1fr; }
+    .eco-branches { grid-template-columns: 1fr 1fr; }
+    .cover-meta { grid-template-columns: 1fr; gap: 16px; }
+    h2 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="document">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- COVER PAGE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">Deep Learning Documentation Series</div>
+  <h1>
+    Introduction<br>to <span>PyTorch</span>
+  </h1>
+  <p class="cover-subtitle">
+    A comprehensive, story-driven guide to the framework that powers modern artificial intelligence — from its origins to your first line of code.
+  </p>
+  <div class="cover-meta">
+    <div>
+      <strong>Day</strong>
+      01 of ∞
+    </div>
+    <div>
+      <strong>Date</strong>
+      July 12, 2026
+    </div>
+    <div>
+      <strong>Topic</strong>
+      What is PyTorch?
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 1: TABLE OF CONTENTS + OPENING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>Table of Contents</h2>
+  <p class="lead">This document covers the complete story of PyTorch — what it is, where it came from, why it exists, and why it matters. Everything you need to begin your journey.</p>
+
+  <div class="toc">
+    <div class="toc-item">
+      <span class="toc-num">01</span>
+      <div><span class="toc-title">The World Before PyTorch</span><br><span class="toc-desc">A story about pain, frustration, and the birth of an idea</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">02</span>
+      <div><span class="toc-title">What Is PyTorch?</span><br><span class="toc-desc">The definition, broken into three identities</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">03</span>
+      <div><span class="toc-title">The History — From Torch to PyTorch</span><br><span class="toc-desc">The complete timeline from 2002 to today</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">04</span>
+      <div><span class="toc-title">The People Who Built It</span><br><span class="toc-desc">Meet the creators behind the revolution</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">05</span>
+      <div><span class="toc-title">Why PyTorch? — The Seven Superpowers</span><br><span class="toc-desc">What made it the undisputed king of deep learning</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">06</span>
+      <div><span class="toc-title">How PyTorch Works — Under the Hood</span><br><span class="toc-desc">Architecture, tensors, autograd, and the magic</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">07</span>
+      <div><span class="toc-title">PyTorch vs. The World</span><br><span class="toc-desc">How it compares to TensorFlow, JAX, and others</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">08</span>
+      <div><span class="toc-title">The Ecosystem</span><br><span class="toc-desc">TorchVision, Hugging Face, Lightning, and beyond</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">09</span>
+      <div><span class="toc-title">Core Building Blocks — First Look</span><br><span class="toc-desc">Tensors, autograd, nn.Module, optimizers</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">10</span>
+      <div><span class="toc-title">Installation & Getting Started</span><br><span class="toc-desc">Your first step into the PyTorch world</span></div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">11</span>
+      <div><span class="toc-title">The Road Ahead</span><br><span class="toc-desc">Your learning path for the weeks to come</span></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <h3>How to Read This Document</h3>
+  <p>This isn't a dry technical manual. It's a <strong>story</strong> — the story of how a group of researchers at Facebook looked at the state of deep learning and said: <em>"We can do better."</em></p>
+  <p>As you read, you'll encounter story blocks (narrative moments), technical deep-dives, code examples, and visual diagrams. Every section builds on the previous one, so reading in order is recommended — especially on your first pass.</p>
+
+  <div class="callout">
+    <strong>📌 About This Series</strong>
+    This is Day 1 of your daily PyTorch documentation. Each day, a new document will be created covering the next topic in your learning journey. By the end, you'll have a complete personal reference library.
+  </div>
+
+  <span class="page-number">01</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 2: THE WORLD BEFORE PYTORCH -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 01</span>
+    The World Before PyTorch
+  </h2>
+
+  <p class="lead">To understand why PyTorch exists, you need to understand the world that created it — a world where building AI was painful, slow, and reserved for the few who could stomach the tools.</p>
+
+  <h3>A Scientist's Frustration — 2012</h3>
+
+  <div class="story-block">
+    <span class="year-tag">2012</span>
+    It's a Monday morning at a university lab. A PhD student named Alex sits in front of his monitor, staring at 400 lines of C code. All he wants to do is train a simple neural network to recognize handwritten digits. But before he can even <strong>think</strong> about the model, he has to manually implement matrix multiplications, gradient calculations, and a backpropagation loop.<br><br>
+    Three weeks later, his model finally works. It achieves 89% accuracy. He's exhausted. He didn't get to experiment with different architectures because <strong>every change meant rewriting hundreds of lines of code</strong>.<br><br>
+    Meanwhile, across the world, a neural network called <strong>AlexNet</strong> just won the ImageNet competition with a 10.8% improvement over the second-place entry. The deep learning revolution has begun. But the tools to participate in it? They're stuck in the dark ages.
+  </div>
+
+  <p>This was the reality in 2012. Deep learning was exploding, but the tooling was primitive. Researchers spent more time fighting their frameworks than doing actual research.</p>
+
+  <h3>The First Responders</h3>
+
+  <p>Several frameworks rose to address this crisis. Each was important. Each had fatal flaws.</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">2007</div>
+      <div class="timeline-title">Theano — University of Montreal</div>
+      <div class="timeline-desc">The pioneer. Created by Yoshua Bengio's lab (one of the "Godfathers of Deep Learning"). Theano introduced symbolic differentiation and GPU computing to the academic world. But it was complex — like learning to fly a fighter jet just to go to the grocery store.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2013</div>
+      <div class="timeline-title">Caffe — UC Berkeley</div>
+      <div class="timeline-desc">A computer vision specialist. Fast and efficient for image tasks, but rigid. If your model didn't fit Caffe's mold, you were out of luck. Configuration through text files, not code.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2015</div>
+      <div class="timeline-title">TensorFlow 1.0 — Google</div>
+      <div class="timeline-desc">The giant awakens. Google released TensorFlow with the full force of its brand and engineering. Powerful, production-ready — but the static computation graph (define-then-run) made debugging feel like solving a puzzle blindfolded. Sessions, placeholders, feed_dicts — the API was hostile to researchers.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2002–2016</div>
+      <div class="timeline-title">Torch — NYU / Facebook AI</div>
+      <div class="timeline-desc">The unsung hero. Built at NYU, adopted heavily by Facebook AI Research (FAIR). Dynamic computation graph, fast C/CUDA backend, loved by researchers. But it ran on <strong>Lua</strong> — a niche language that almost nobody in the ML community spoke. This was its fatal limitation.</div>
+    </div>
+  </div>
+
+  <h3>The Moment of Realization</h3>
+
+  <p>By 2016, researchers at Facebook AI were in a peculiar situation. They had Torch — a framework they loved for its flexibility and speed. But every time they hired a new researcher or collaborated with external labs, the same question came up:</p>
+
+  <div class="quote-block">
+    "I know Python. I know NumPy. I don't know Lua. I shouldn't have to learn a new programming language just to do deep learning."
+    <span class="quote-author">— The collective frustration of the ML research community, circa 2016</span>
+  </div>
+
+  <p>Meanwhile, TensorFlow was gaining users by the millions — not because it was better to use, but because Google was Google, and the documentation was extensive. Researchers tolerated its quirks because there wasn't a better Python alternative.</p>
+
+  <p>The question that changed everything was simple:</p>
+
+  <div class="callout success">
+    <strong>💡 The Question That Started It All</strong>
+    What if we could take everything researchers love about Torch — the dynamic graphs, the speed, the flexibility — and give it the one language every scientist and engineer is already using?
+  </div>
+
+  <span class="page-number">02</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 3: WHAT IS PYTORCH -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 02</span>
+    What Is PyTorch?
+  </h2>
+
+  <p class="lead">PyTorch is an open-source deep learning framework and scientific computing library created by Meta AI. But a textbook definition doesn't capture its soul. Let's break it down.</p>
+
+  <h3>The Three Faces of PyTorch</h3>
+
+  <p>PyTorch isn't just one thing. It's three powerful tools merged into one elegant framework:</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">1. A Tensor Computing Library</div>
+      <p>At its core, PyTorch provides multi-dimensional arrays called <strong>Tensors</strong> — like NumPy, but with GPU superpowers. Tensors are the fundamental data structure: every image, every word embedding, every model weight is a Tensor.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">2. A Neural Network Framework</div>
+      <p>PyTorch lets you build neural networks using <strong>dynamic computation graphs</strong>. The graph is built as your code runs, not declared ahead of time. This means your AI models read like normal Python — readable, debuggable, and flexible.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌍</div>
+      <div class="card-title">3. An AI Ecosystem</div>
+      <p>PyTorch is surrounded by an entire universe of tools: TorchVision for images, Hugging Face for language models, Lightning for simplified training, TorchServe for production — and hundreds more.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🐍</div>
+      <div class="card-title">4. A Python-First Experience</div>
+      <p>PyTorch was designed from day one to feel native to Python. No special syntax. No sessions. No placeholders. Just Python — with tensors and gradients added seamlessly on top of the language you already know.</p>
+    </div>
+  </div>
+
+  <h3>A Simple Definition</h3>
+
+  <div class="quote-block">
+    PyTorch is a Python-first, GPU-accelerated, dynamically-computed deep learning framework that gives researchers and engineers the power to build, train, and deploy neural networks with unprecedented flexibility and speed.
+    <span class="quote-author">— A definition you should memorize (just kidding... or not)</span>
+  </div>
+
+  <h3>What Does It Look Like in Code?</h3>
+
+  <p>Here's the beauty of PyTorch — look how natural this reads:</p>
+
+  <span class="code-label">Python — Creating Tensors</span>
+<pre><span class="keyword">import</span> torch
+
+<span class="comment"># Create a tensor (like a NumPy array, but smarter)</span>
+x = torch.<span class="function">tensor</span>([<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>])
+<span class="builtin">print</span>(x)              <span class="comment"># tensor([1., 2., 3.])</span>
+<span class="builtin">print</span>(x.<span class="function">shape</span>)         <span class="comment"># torch.Size([3])</span>
+
+<span class="comment"># Move to GPU — one line of code</span>
+x_gpu = x.<span class="function">to</span>(<span class="string">'cuda'</span>)
+
+<span class="comment"># All operations automatically use GPU</span>
+y_gpu = torch.<span class="function">matmul</span>(x_gpu, x_gpu)  <span class="comment"># Blazing fast!</span></pre>
+
+  <span class="code-label">Python — Building a Neural Network</span>
+<pre><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn
+
+<span class="comment"># Define a neural network — reads like plain Python</span>
+<span class="keyword">class</span> <span class="class">SimpleNet</span>(nn.<span class="class">Module</span>):
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="builtin">self</span>):
+        <span class="builtin">super</span>().<span class="function">__init__</span>()
+        <span class="builtin">self</span>.layer1 = nn.<span class="class">Linear</span>(<span class="number">784</span>, <span class="number">128</span>)
+        <span class="builtin">self</span>.layer2 = nn.<span class="class">Linear</span>(<span class="number">128</span>, <span class="number">10</span>)
+        <span class="builtin">self</span>.relu = nn.<span class="class">ReLU</span>()
+
+    <span class="keyword">def</span> <span class="function">forward</span>(<span class="builtin">self</span>, x):
+        x = <span class="builtin">self</span>.<span class="function">relu</span>(<span class="builtin">self</span>.<span class="function">layer1</span>(x))
+        x = <span class="builtin">self</span>.<span class="function">layer2</span>(x)
+        <span class="keyword">return</span> x
+
+model = <span class="class">SimpleNet</span>()  <span class="comment"># That's it. You have a neural network.</span></pre>
+
+  <p>No sessions. No graphs to define separately. No configuration files. Just Python classes and functions — the way coding should feel.</p>
+
+  <span class="page-number">03</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 4: HISTORY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 03</span>
+    The History — From Torch to PyTorch
+  </h2>
+
+  <p class="lead">Every great framework has an origin story. PyTorch's begins not in Silicon Valley, but in the intersection of academic frustration, a niche programming language, and one bold decision to bridge them.</p>
+
+  <h3>Act I: The Torch Era (2002–2016)</h3>
+
+  <div class="story-block">
+    <span class="year-tag">2002</span>
+    In a lab at New York University, researcher <strong>Ronan Collobert</strong> and collaborators at IDT Corporation release <strong>Torch</strong> (later known as Torch7) — a scientific computing framework built on top of <strong>Lua</strong>, a lightweight scripting language popular in game development.<br><br>
+    Torch was beautiful in concept: a flexible C/CUDA backend with a dynamic computation graph and an easy scripting interface. Researchers at <strong>Facebook AI Research (FAIR)</strong> fell in love with it. It became their daily driver — fast, expressive, and perfectly suited for rapid experimentation.<br><br>
+    But there was a problem that would eventually become fatal: <strong>Lua</strong>. Despite being elegant, Lua was a niche language. The machine learning world was coalescing around Python. Students learned NumPy in their first week. They used Jupyter Notebooks. They wrote Scikit-learn pipelines. Asking them to learn Lua was like asking a chef to cook in a language they didn't speak.
+  </div>
+
+  <h3>Act II: The Birth (2016–2017)</h3>
+
+  <div class="story-block">
+    <span class="year-tag">Sept 2016</span>
+    At Facebook AI Research, <strong>Soumith Chintala</strong> — a research engineer who had been working with Torch for years — begins an ambitious project. His vision is crystalline:<br><br>
+    <em>"Take the best parts of Torch. Take the best parts of the Python scientific ecosystem. Add GPU acceleration and automatic differentiation. Create a framework that researchers will <strong>love</strong> to use."</em><br><br>
+    He assembles a small, brilliant team. Among them is <strong>Adam Paszke</strong> — a university student in Poland who would go on to architect PyTorch's most defining feature: the <strong>autograd system</strong> (automatic differentiation engine).<br><br>
+    The work is intense. They're not just wrapping Torch in Python — they're reimagining what a research framework should feel like. Every API decision is tested against one question: <em>"Does this feel natural to a Python developer?"</em>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">January 18, 2017</div>
+      <div class="timeline-title">PyTorch 0.1.1 — Alpha Release</div>
+      <div class="timeline-desc">The first public version. Soumith announces it on the PyTorch blog. The reception is electric — within weeks, researchers begin switching from TensorFlow and Lua-Torch.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">August 2017</div>
+      <div class="timeline-title">PyTorch 0.2.0</div>
+      <div class="timeline-desc">Broadcasting, advanced indexing, higher-order gradients. The framework is maturing fast.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">December 2017</div>
+      <div class="timeline-title">PyTorch 0.3.0</div>
+      <div class="timeline-desc">Integration with Caffe2 begins. The vision of a unified framework starts taking shape.</div>
+    </div>
+  </div>
+
+  <h3>Act III: The Turning Point (2018)</h3>
+
+  <div class="story-block">
+    <span class="year-tag">April 2018</span>
+    <strong>PyTorch 0.4.0</strong> arrives, and it changes everything. The old separation between <code>Tensor</code> and <code>Variable</code> is eliminated. In the old world, you had to wrap tensors in Variable objects to track gradients — an unnecessary complexity. Now, <strong>a Tensor is a Variable</strong>. Set <code>requires_grad=True</code> and gradients just work.<br><br>
+    This release makes PyTorch dramatically cleaner. Code shrinks. Confusion disappears. The community rejoices.
+  </div>
+
+  <div class="story-block">
+    <span class="year-tag">December 2018</span>
+    <strong>PyTorch 1.0</strong> is released — the declaration that PyTorch is no longer just a research tool. It's production-ready. Key additions include <strong>TorchScript</strong> (a way to serialize and optimize models), a <strong>C++ frontend</strong>, and tighter integration with Facebook's production stack. The message is clear: PyTorch works in the lab <em>and</em> in the real world.
+  </div>
+
+  <h3>Act IV: The Takeover (2019–2022)</h3>
+
+  <div class="story-block">
+    <span class="year-tag">2019</span>
+    The numbers are in, and they're staggering. At <strong>NeurIPS 2019</strong> (the most prestigious AI conference), PyTorch is used in <strong>69% of all papers</strong>. At ICML, it surpasses TensorFlow. The academic world has voted — overwhelmingly — for PyTorch.<br><br>
+    But the story doesn't end in academia. <strong>Hugging Face</strong> releases their Transformers library, built PyTorch-first, giving researchers instant access to models like BERT and GPT. <strong>Stable Diffusion</strong>, <strong>AlphaFold</strong>, <strong>LLaMA</strong> — the most groundbreaking AI systems of the era are all built in PyTorch.
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">September 2022</div>
+      <div class="timeline-title">Linux Foundation Transfer</div>
+      <div class="timeline-desc">Meta transfers PyTorch governance to the Linux Foundation, establishing the PyTorch Foundation. PyTorch now belongs to the community, not one company.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">March 2023</div>
+      <div class="timeline-title">PyTorch 2.0 — The Compiler Revolution</div>
+      <div class="timeline-desc">Introduces <code>torch.compile()</code> — a compiler that automatically optimizes PyTorch code for 15-50% speed gains. No code changes needed. A fundamental architectural leap.</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2024–2026</div>
+      <div class="timeline-title">The Modern Era</div>
+      <div class="timeline-desc">PyTorch 2.x continues evolving: better compilation, improved distributed training, expanding hardware support (AMD, Intel, Apple Silicon), and the <code>torch.export()</code> API for model portability. PyTorch is the engine behind virtually all frontier AI research.</div>
+    </div>
+  </div>
+
+  <span class="page-number">04</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 5: THE PEOPLE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 04</span>
+    The People Who Built It
+  </h2>
+
+  <p class="lead">Behind every great framework are great people. PyTorch was shaped by a small team of brilliant engineers and researchers who shared a vision of what deep learning tooling should feel like.</p>
+
+  <div class="person-grid">
+    <div class="person-card">
+      <div class="person-avatar">S</div>
+      <div class="person-info">
+        <strong>Soumith Chintala</strong>
+        <span>Creator & Lead Architect. Research Engineer at Meta AI. Born in India, studied at NYU. The driving force behind PyTorch's creation. Known for his clear vision of making deep learning research accessible and enjoyable.</span>
+      </div>
+    </div>
+    <div class="person-card">
+      <div class="person-avatar">A</div>
+      <div class="person-info">
+        <strong>Adam Paszke</strong>
+        <span>Core Developer. A university student in Poland when he began contributing. Architect of the autograd system — PyTorch's automatic differentiation engine, arguably its most defining feature. Later joined DeepMind.</span>
+      </div>
+    </div>
+    <div class="person-card">
+      <div class="person-avatar">S</div>
+      <div class="person-info">
+        <strong>Sam Gross</strong>
+        <span>Core Developer. Contributed to the early architecture and C++ backend. His work on performance optimization helped PyTorch match and exceed TensorFlow's speed.</span>
+      </div>
+    </div>
+    <div class="person-card">
+      <div class="person-avatar">G</div>
+      <div class="person-info">
+        <strong>Gregory Chanan</strong>
+        <span>Core Developer. Worked on the distributed training infrastructure and core tensor operations. Part of the original team that shipped PyTorch 0.1.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>🤝 The Broader Community</strong>
+    Beyond the core team, PyTorch has been shaped by <strong>3,000+ open-source contributors</strong> from around the world. Every bug report, documentation fix, and feature request has made PyTorch what it is today. It's a truly community-driven project.
+  </div>
+
+  <hr class="divider">
+
+  <h2>
+    <span class="chapter-num">Chapter 05</span>
+    Why PyTorch? — The Seven Superpowers
+  </h2>
+
+  <p class="lead">In a world where Google was pushing TensorFlow with the full force of its brand, how did a framework born in a Facebook research lab become the undisputed king? Seven reasons.</p>
+
+  <h3>Superpower 1: Pythonic Design</h3>
+
+  <p>PyTorch doesn't feel like a framework. <strong>It feels like Python.</strong> It works with native Python control flow (if/else, loops, exceptions), integrates with NumPy, and supports standard debugging tools like <code>print()</code> and <code>pdb</code>. No special syntax. No ceremony.</p>
+
+  <div class="vs-box">
+    <div class="vs-side left">
+      <h4 style="color: var(--red);">TensorFlow 1.x Style</h4>
+<pre style="background:#2b1a1a;font-size:11px;"><span class="comment"># Define a graph first...</span>
+x = tf.<span class="function">placeholder</span>(tf.float32)
+y = tf.<span class="function">matmul</span>(x, w) + b
+
+<span class="comment"># ...then run it in a session</span>
+<span class="keyword">with</span> tf.<span class="class">Session</span>() <span class="keyword">as</span> sess:
+    result = sess.<span class="function">run</span>(
+        y, <span class="op">feed_dict=</span>{x: data}
+    )</pre>
+    </div>
+    <div class="vs-divider">vs</div>
+    <div class="vs-side right">
+      <h4 style="color: var(--green);">PyTorch Style</h4>
+<pre style="background:#1a2b1a;font-size:11px;"><span class="comment"># Just... do it</span>
+x = torch.<span class="function">tensor</span>(data)
+y = torch.<span class="function">matmul</span>(x, w) + b
+<span class="comment"># Done. y already has your result.</span></pre>
+    </div>
+  </div>
+
+  <h3>Superpower 2: Dynamic Computation Graphs</h3>
+
+  <p>Traditional frameworks (TensorFlow 1.x) used <strong>static graphs</strong>: define the entire computation graph first, then execute it. PyTorch uses <strong>dynamic graphs</strong> (define-by-run): the graph is built in real-time as your code executes.</p>
+
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>Static Graph (TF 1.x)</th><th>Dynamic Graph (PyTorch)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Debugging</strong></td><td>tf.Session, tf.Print</td><td>print(), pdb — standard Python</td></tr>
+      <tr><td><strong>Conditional logic</strong></td><td>tf.cond, tf.while_loop</td><td>Native if/else, for/while</td></tr>
+      <tr><td><strong>Variable-length inputs</strong></td><td>Complex padding/masking</td><td>Natural Python handling</td></tr>
+      <tr><td><strong>Readability</strong></td><td>Graph abstraction required</td><td>Reads like normal Python</td></tr>
+      <tr><td><strong>Iteration speed</strong></td><td>Slow (rebuild graph)</td><td>Fast (change and run immediately)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Superpower 3: Effortless GPU Acceleration</h3>
+
+<pre><span class="comment"># Create on CPU</span>
+x = torch.<span class="function">randn</span>(<span class="number">1000</span>, <span class="number">1000</span>)
+
+<span class="comment"># Move to GPU — one line</span>
+x_gpu = x.<span class="function">to</span>(<span class="string">'cuda'</span>)
+
+<span class="comment"># Everything runs on GPU automatically</span>
+y = torch.<span class="function">matmul</span>(x_gpu, x_gpu)  <span class="comment"># 10-100x faster!</span></pre>
+
+  <h3>Superpower 4: Automatic Differentiation (Autograd)</h3>
+
+  <p>The magic that makes deep learning work. PyTorch automatically computes gradients — the mathematical foundation of how neural networks learn.</p>
+
+<pre>x = torch.<span class="function">tensor</span>(<span class="number">3.0</span>, <span class="op">requires_grad=</span><span class="builtin">True</span>)
+y = x ** <span class="number">2</span> + <span class="number">2</span> * x + <span class="number">1</span>  <span class="comment"># y = x² + 2x + 1</span>
+
+y.<span class="function">backward</span>()  <span class="comment"># Compute dy/dx automatically</span>
+<span class="builtin">print</span>(x.grad)  <span class="comment"># tensor(8.) → dy/dx = 2(3) + 2 = 8 ✓</span></pre>
+
+  <span class="page-number">05</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 6: MORE SUPERPOWERS + HOW IT WORKS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <h3>Superpower 5: The Largest AI Ecosystem</h3>
+
+  <p>PyTorch isn't alone — it sits at the center of the most vibrant ecosystem in deep learning:</p>
+
+  <div class="eco-map">
+    <div class="eco-core">PyTorch Core</div>
+    <div class="eco-branches">
+      <div class="eco-item"><strong>TorchVision</strong><span>Computer vision models & datasets</span></div>
+      <div class="eco-item"><strong>TorchText</strong><span>NLP tools & tokenizers</span></div>
+      <div class="eco-item"><strong>TorchAudio</strong><span>Audio processing</span></div>
+      <div class="eco-item"><strong>Hugging Face</strong><span>500,000+ NLP/vision models</span></div>
+      <div class="eco-item"><strong>PyTorch Lightning</strong><span>Simplified training</span></div>
+      <div class="eco-item"><strong>FastAI</strong><span>High-level API</span></div>
+      <div class="eco-item"><strong>Detectron2</strong><span>Object detection SOTA</span></div>
+      <div class="eco-item"><strong>PyG</strong><span>Graph neural networks</span></div>
+      <div class="eco-item"><strong>MONAI</strong><span>Medical imaging AI</span></div>
+    </div>
+  </div>
+
+  <h3>Superpower 6: Production-Ready Deployment</h3>
+
+  <ul class="feature-list">
+    <li><strong>TorchScript</strong> — Convert models to a serialized, optimized format</li>
+    <li><strong>torch.compile()</strong> — Automatic 15-50% performance boost (PyTorch 2.0+)</li>
+    <li><strong>ONNX Export</strong> — Interoperability with other frameworks and runtimes</li>
+    <li><strong>PyTorch Mobile</strong> — Deploy models on iOS and Android</li>
+    <li><strong>TorchServe</strong> — Scalable model serving in production</li>
+    <li><strong>C++ Frontend</strong> — Run inference without Python</li>
+  </ul>
+
+  <h3>Superpower 7: First-Class Support for Frontier AI</h3>
+
+  <table>
+    <thead>
+      <tr><th>AI System</th><th>Built With</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>GPT Models (OpenAI)</td><td>PyTorch</td></tr>
+      <tr><td>LLaMA (Meta)</td><td>PyTorch</td></tr>
+      <tr><td>Stable Diffusion</td><td>PyTorch</td></tr>
+      <tr><td>AlphaFold (protein science)</td><td>PyTorch components</td></tr>
+      <tr><td>Most Hugging Face models</td><td>PyTorch-first</td></tr>
+      <tr><td>Tesla Autopilot</td><td>PyTorch</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <h2>
+    <span class="chapter-num">Chapter 06</span>
+    How PyTorch Works — Under the Hood
+  </h2>
+
+  <p class="lead">Let's peel back the layers and see how PyTorch is actually structured — from the Python code you write down to the silicon that does the math.</p>
+
+  <h3>The Architecture Stack</h3>
+
+  <div class="arch-diagram">
+    <div class="arch-layer">
+      <div class="arch-block l1" style="flex:1;">🧑‍💻 &nbsp; Your Python Code</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer">
+      <div class="arch-block l2" style="flex:1;">🧠 &nbsp; torch.nn — Neural Network Module (Layers, Loss, Models)</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer">
+      <div class="arch-block l3" style="flex:1;">🔄 &nbsp; torch.autograd — Automatic Differentiation Engine</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer">
+      <div class="arch-block l4" style="flex:1;">📊 &nbsp; torch — Tensor Operations (the core library)</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer">
+      <div class="arch-block l5" style="flex:1;">⚙️ &nbsp; ATen — C++ Tensor Library (optimized operations)</div>
+    </div>
+    <div class="arch-arrow">↓</div>
+    <div class="arch-layer">
+      <div class="arch-block l6" style="flex:1;">🖥️ &nbsp; CUDA / cuDNN / CPU BLAS — Hardware Compute Backend</div>
+    </div>
+  </div>
+
+  <h3>Layer-by-Layer Breakdown</h3>
+
+  <h4>Layer 6: Hardware Backends</h4>
+  <p>At the bottom, PyTorch delegates actual number crunching to optimized libraries: <strong>CUDA</strong> and <strong>cuDNN</strong> for NVIDIA GPUs, <strong>BLAS/LAPACK</strong> for CPUs, <strong>MPS</strong> for Apple Silicon, and <strong>ROCm</strong> for AMD GPUs.</p>
+
+  <h4>Layer 5: ATen (A Tensor Library)</h4>
+  <p>PyTorch's C++ backend. It provides hundreds of operations (add, multiply, convolution, etc.) that work on both CPU and GPU. When you call <code>torch.add(a, b)</code>, it ultimately calls ATen's optimized C++ implementation.</p>
+
+  <h4>Layer 4: Tensors</h4>
+  <p>Every PyTorch Tensor is: a pointer to memory, a shape, a data type, a device, and (optionally) a computation graph node for autograd.</p>
+
+  <h4>Layer 3: Autograd</h4>
+  <p>The automatic differentiation engine. It records operations on tensors with <code>requires_grad=True</code>, building a directed acyclic graph (DAG). When you call <code>.backward()</code>, it traverses this graph backwards and computes gradients using the chain rule.</p>
+
+  <h4>Layer 2: Neural Network Module</h4>
+  <p>Provides pre-built layers (Linear, Conv2d, LSTM, Transformer), loss functions, and the <code>nn.Module</code> base class.</p>
+
+  <h4>Layer 1: Your Code</h4>
+  <p>Clean, Pythonic code that orchestrates everything above.</p>
+
+  <span class="page-number">06</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 7: TRAINING LOOP + COMPARISON -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <h3>The Heartbeat: The Training Loop</h3>
+
+  <p>Every deep learning model is trained through a loop. This is the rhythm you'll write hundreds of times:</p>
+
+  <div class="loop-diagram">
+    <div class="loop-step">
+      <div class="step-num">1</div>
+      <span class="step-title">Forward</span>
+      <small style="font-size:11px;color:var(--text-muted);">Pass input through model</small>
+      <span class="step-code">model(x)</span>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">2</div>
+      <span class="step-title">Loss</span>
+      <small style="font-size:11px;color:var(--text-muted);">Measure how wrong we are</small>
+      <span class="step-code">loss_fn(pred, y)</span>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">3</div>
+      <span class="step-title">Backward</span>
+      <small style="font-size:11px;color:var(--text-muted);">Compute all gradients</small>
+      <span class="step-code">loss.backward()</span>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">4</div>
+      <span class="step-title">Update</span>
+      <small style="font-size:11px;color:var(--text-muted);">Adjust model weights</small>
+      <span class="step-code">optimizer.step()</span>
+    </div>
+    <div class="loop-step">
+      <div class="step-num">5</div>
+      <span class="step-title">Reset</span>
+      <small style="font-size:11px;color:var(--text-muted);">Clear old gradients</small>
+      <span class="step-code">zero_grad()</span>
+    </div>
+  </div>
+
+  <span class="code-label">The Complete Training Loop</span>
+<pre><span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="builtin">range</span>(num_epochs):
+    <span class="keyword">for</span> batch_inputs, batch_targets <span class="keyword">in</span> dataloader:
+        <span class="comment"># Step 1: Forward pass</span>
+        predictions = <span class="function">model</span>(batch_inputs)
+
+        <span class="comment"># Step 2: Compute loss</span>
+        loss = <span class="function">loss_fn</span>(predictions, batch_targets)
+
+        <span class="comment"># Step 3: Backward pass (compute gradients)</span>
+        loss.<span class="function">backward</span>()
+
+        <span class="comment"># Step 4: Update weights</span>
+        optimizer.<span class="function">step</span>()
+
+        <span class="comment"># Step 5: Zero gradients for next iteration</span>
+        optimizer.<span class="function">zero_grad</span>()</pre>
+
+  <hr class="divider">
+
+  <h2>
+    <span class="chapter-num">Chapter 07</span>
+    PyTorch vs. The World
+  </h2>
+
+  <p class="lead">The deep learning framework landscape has evolved dramatically. Here's where PyTorch stands relative to its competitors.</p>
+
+  <h3>PyTorch vs. TensorFlow — The Great Rivalry</h3>
+
+  <table>
+    <thead>
+      <tr><th>Aspect</th><th>PyTorch</th><th>TensorFlow</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Creator</strong></td><td>Meta AI → Linux Foundation</td><td>Google</td></tr>
+      <tr><td><strong>First Release</strong></td><td>January 2017</td><td>November 2015</td></tr>
+      <tr><td><strong>Graph Type</strong></td><td>Dynamic (define-by-run)</td><td>Static (1.x) → Both (2.x)</td></tr>
+      <tr><td><strong>API Style</strong></td><td>Pythonic, object-oriented</td><td>Functional → Keras (2.x)</td></tr>
+      <tr><td><strong>Debugging</strong></td><td>Standard Python tools</td><td>TFDBG, tf.print</td></tr>
+      <tr><td><strong>Research Papers</strong></td><td>~75%+ of papers</td><td>Declining share</td></tr>
+      <tr><td><strong>Production Tools</strong></td><td>TorchServe, ONNX, compile</td><td>TF Serving, TFLite, TF.js</td></tr>
+      <tr><td><strong>Learning Curve</strong></td><td>Gentle (if you know Python)</td><td>Steeper (especially 1.x)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <strong>The Verdict</strong>
+    PyTorch has won the research war decisively. TensorFlow still has strong production tooling, but PyTorch is closing the gap rapidly with torch.compile, TorchServe, and ONNX. For someone starting today, PyTorch is the better investment.
+  </div>
+
+  <h3>PyTorch vs. JAX — The New Challenger</h3>
+
+  <table>
+    <thead>
+      <tr><th>Aspect</th><th>PyTorch</th><th>JAX</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Creator</strong></td><td>Meta AI</td><td>Google DeepMind</td></tr>
+      <tr><td><strong>Philosophy</strong></td><td>Imperative, Pythonic</td><td>Functional, NumPy-like</td></tr>
+      <tr><td><strong>Computation</strong></td><td>Dynamic graph</td><td>Functional transforms (jit, grad, vmap)</td></tr>
+      <tr><td><strong>Ecosystem</strong></td><td>Massive</td><td>Growing but smaller</td></tr>
+      <tr><td><strong>Learning Curve</strong></td><td>Moderate</td><td>Steep (functional paradigm)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>JAX Note</strong>
+    JAX is elegant and powerful, especially for research requiring functional transformations. But its ecosystem is smaller, and it requires understanding functional programming concepts. PyTorch is the safer and more versatile starting point.
+  </div>
+
+  <span class="page-number">07</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 8: BUILDING BLOCKS + INSTALLATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 08</span>
+    Core Building Blocks — A First Look
+  </h2>
+
+  <p class="lead">Before we dive deep in future days, let's preview the fundamental building blocks you'll encounter in every PyTorch project.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Tensors</div>
+      <p>The fundamental data structure. Everything — images, text, weights — is a Tensor. Like NumPy arrays, but with GPU power and gradient tracking.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">Autograd</div>
+      <p>The automatic differentiation engine. Call <code>.backward()</code> and gradients flow through your computation graph automatically. The magic behind how neural networks learn.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧱</div>
+      <div class="card-title">nn.Module</div>
+      <p>The base class for all neural networks. Define layers in <code>__init__</code>, define the forward pass in <code>forward()</code>. PyTorch handles everything else.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <div class="card-title">Loss Functions</div>
+      <p>Measuring wrongness. CrossEntropyLoss for classification, MSELoss for regression. The signal that tells your model what to improve.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Optimizers</div>
+      <p>SGD, Adam, AdaGrad — algorithms that update model weights using computed gradients. The engine of learning.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <div class="card-title">DataLoaders</div>
+      <p>Efficient data loading with automatic batching, shuffling, and parallel processing. Feed your model without bottlenecks.</p>
+    </div>
+  </div>
+
+  <h3>How They Fit Together</h3>
+
+  <div class="arch-diagram">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+      <div class="arch-block l1">📦 Dataset &<br>DataLoader</div>
+      <div class="arch-block l2">🧱 Model<br>(nn.Module)</div>
+      <div class="arch-block l3">📉 Loss<br>Function</div>
+    </div>
+    <div class="arch-arrow" style="color:rgba(255,255,255,0.5);">↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;margin-top:6px;">
+      <div class="arch-block l5">📊 Tensors<br>(Data)</div>
+      <div class="arch-block l6">🔄 Autograd<br>(.backward)</div>
+      <div class="arch-block l4">⚡ Optimizer<br>(.step)</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <h2>
+    <span class="chapter-num">Chapter 09</span>
+    Installation & Getting Started
+  </h2>
+
+  <p class="lead">Your first step into the PyTorch world. Choose the method that works best for you.</p>
+
+  <h3>Option 1: pip (Recommended)</h3>
+
+<pre><span class="comment"># CPU only (perfect for learning basics)</span>
+pip install torch torchvision torchaudio
+
+<span class="comment"># With CUDA 12.1 (for NVIDIA GPU)</span>
+pip install torch torchvision torchaudio <span class="op">--index-url</span> https://download.pytorch.org/whl/cu121
+
+<span class="comment"># With CUDA 11.8 (older NVIDIA GPUs)</span>
+pip install torch torchvision torchaudio <span class="op">--index-url</span> https://download.pytorch.org/whl/cu118</pre>
+
+  <h3>Option 2: conda</h3>
+
+<pre><span class="comment"># CPU only</span>
+conda install pytorch torchvision torchaudio cpuonly <span class="op">-c</span> pytorch
+
+<span class="comment"># With CUDA 12.1</span>
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 <span class="op">-c</span> pytorch <span class="op">-c</span> nvidia</pre>
+
+  <h3>Option 3: Google Colab (Zero Setup!)</h3>
+
+  <div class="callout success">
+    <strong>Best for Day 1</strong>
+    Go to <strong>colab.research.google.com</strong> → Create a new notebook → PyTorch is pre-installed → Enable GPU via Runtime → Change runtime type → T4 GPU. No installation needed!
+  </div>
+
+  <h3>Verify Installation</h3>
+
+<pre><span class="keyword">import</span> torch
+
+<span class="builtin">print</span>(<span class="string">f"PyTorch Version: </span>{torch.__version__}<span class="string">"</span>)
+<span class="builtin">print</span>(<span class="string">f"CUDA Available: </span>{torch.cuda.<span class="function">is_available</span>()}<span class="string">"</span>)
+
+<span class="keyword">if</span> torch.cuda.<span class="function">is_available</span>():
+    <span class="builtin">print</span>(<span class="string">f"GPU: </span>{torch.cuda.<span class="function">get_device_name</span>(<span class="number">0</span>)}<span class="string">"</span>)
+<span class="keyword">else</span>:
+    <span class="builtin">print</span>(<span class="string">"Running on CPU — that's fine for learning!"</span>)</pre>
+
+  <span class="page-number">08</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 9: ROADMAP + CLOSING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Chapter 10</span>
+    The Road Ahead
+  </h2>
+
+  <p class="lead">You're standing at the beginning of a journey that will transform how you think about AI, code, and problem-solving. Here's the roadmap for the weeks ahead.</p>
+
+  <div class="roadmap">
+    <div class="roadmap-week">
+      <div class="roadmap-label">Week 1-2<br>Foundations</div>
+      <ul class="roadmap-items">
+        <li><strong>Day 1 (Today):</strong> Introduction, History, Setup ✓</li>
+        <li>Day 2: Tensors Deep Dive — creation, shapes, operations</li>
+        <li>Day 3: Tensor Operations & Mathematical Functions</li>
+        <li>Day 4: Autograd — How Gradients Flow</li>
+        <li>Day 5: Building Your First Neural Network (nn.Module)</li>
+        <li>Day 6: Training Loop Mastery</li>
+        <li>Day 7: Practice Project — MNIST Handwritten Digits</li>
+      </ul>
+    </div>
+    <div class="roadmap-week">
+      <div class="roadmap-label">Week 3-4<br>Core Skills</div>
+      <ul class="roadmap-items">
+        <li>Datasets & DataLoaders in depth</li>
+        <li>Image Classification with CNNs</li>
+        <li>Transfer Learning with pretrained models</li>
+        <li>Saving & Loading Models (state_dict)</li>
+        <li>Evaluation Metrics & Model Assessment</li>
+      </ul>
+    </div>
+    <div class="roadmap-week">
+      <div class="roadmap-label">Week 5-6<br>Intermediate</div>
+      <ul class="roadmap-items">
+        <li>Natural Language Processing with PyTorch</li>
+        <li>Sequence Models: RNN, LSTM, GRU</li>
+        <li>Introduction to Transformers</li>
+        <li>Custom Training Pipelines</li>
+        <li>Hyperparameter Tuning & Experiment Tracking</li>
+      </ul>
+    </div>
+    <div class="roadmap-week">
+      <div class="roadmap-label">Week 7-8<br>Advanced</div>
+      <ul class="roadmap-items">
+        <li>Distributed Training (DDP, FSDP)</li>
+        <li>Model Optimization & Deployment</li>
+        <li>Generative Models (GANs, VAEs, Diffusion)</li>
+        <li>TorchScript & torch.compile</li>
+        <li>Capstone Real-World Project</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <h3>Recommended Resources</h3>
+
+  <table>
+    <thead>
+      <tr><th>Resource</th><th>Type</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Official PyTorch Tutorials</strong></td><td>Docs + Code</td><td>Reference & structured learning</td></tr>
+      <tr><td><strong>Deep Learning with PyTorch (Book)</strong></td><td>Free Book</td><td>Comprehensive understanding</td></tr>
+      <tr><td><strong>fast.ai Course</strong></td><td>Video Course</td><td>Practical, top-down approach</td></tr>
+      <tr><td><strong>d2l.ai</strong></td><td>Interactive Book</td><td>Math + code integration</td></tr>
+      <tr><td><strong>Papers With Code</strong></td><td>Website</td><td>Staying current with research</td></tr>
+      <tr><td><strong>PyTorch YouTube Channel</strong></td><td>Videos</td><td>Conference talks & tutorials</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <div class="quote-block" style="background: linear-gradient(135deg, #1b2838 0%, #2d1a0a 100%);">
+    Every expert was once a beginner. Every model that works was preceded by a hundred that didn't. The key is consistency — and the fact that you're documenting your learning from Day 1 tells me you have exactly the right mindset.<br><br>
+    Welcome to PyTorch. Let's build something amazing.
+    <span class="quote-author">— Your future self, looking back at this moment</span>
+  </div>
+
+  <hr class="divider">
+
+  <h3>Quick Reference — Essential Commands</h3>
+
+<pre><span class="keyword">import</span> torch                        <span class="comment"># Import PyTorch</span>
+torch.__version__                   <span class="comment"># Check version</span>
+torch.cuda.<span class="function">is_available</span>()           <span class="comment"># Check GPU</span>
+
+<span class="comment"># Create tensors</span>
+x = torch.<span class="function">tensor</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])         <span class="comment"># From list</span>
+x = torch.<span class="function">zeros</span>(<span class="number">3</span>, <span class="number">4</span>)               <span class="comment"># 3×4 zeros</span>
+x = torch.<span class="function">randn</span>(<span class="number">2</span>, <span class="number">3</span>)               <span class="comment"># Random normal</span>
+
+<span class="comment"># Tensor info</span>
+x.<span class="function">shape</span>                             <span class="comment"># Get dimensions</span>
+x.<span class="function">dtype</span>                             <span class="comment"># Get data type</span>
+x.<span class="function">device</span>                            <span class="comment"># cpu or cuda:0</span>
+
+<span class="comment"># GPU operations</span>
+x.<span class="function">to</span>(<span class="string">'cuda'</span>)                        <span class="comment"># Move to GPU</span>
+x.<span class="function">to</span>(<span class="string">'cpu'</span>)                         <span class="comment"># Move to CPU</span>
+
+<span class="comment"># Gradients</span>
+x = torch.<span class="function">tensor</span>(<span class="number">3.0</span>, <span class="op">requires_grad=</span><span class="builtin">True</span>)
+y = x ** <span class="number">2</span>
+y.<span class="function">backward</span>()
+x.<span class="function">grad</span>                              <span class="comment"># tensor(6.)</span>
+
+<span class="comment"># Save & Load</span>
+torch.<span class="function">save</span>(model.<span class="function">state_dict</span>(), <span class="string">'model.pt'</span>)
+model.<span class="function">load_state_dict</span>(torch.<span class="function">load</span>(<span class="string">'model.pt'</span>))</pre>
+
+  <span class="page-number">09</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 10: CHEATSHEET + FOOTER -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="accent-line"></div>
+  <h2>
+    <span class="chapter-num">Appendix</span>
+    PyTorch at a Glance — Cheat Sheet
+  </h2>
+
+  <table>
+    <thead>
+      <tr><th>Aspect</th><th>Detail</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Full Name</strong></td><td>PyTorch</td></tr>
+      <tr><td><strong>Creator</strong></td><td>Meta AI (FAIR), led by Soumith Chintala</td></tr>
+      <tr><td><strong>Initial Release</strong></td><td>January 18, 2017 (v0.1.1 alpha)</td></tr>
+      <tr><td><strong>Current Version</strong></td><td>PyTorch 2.x (2025–2026)</td></tr>
+      <tr><td><strong>Languages</strong></td><td>Python (front-end), C++/CUDA (back-end)</td></tr>
+      <tr><td><strong>License</strong></td><td>BSD-style (open source)</td></tr>
+      <tr><td><strong>Governance</strong></td><td>PyTorch Foundation (Linux Foundation)</td></tr>
+      <tr><td><strong>Key Feature</strong></td><td>Dynamic computation graph (define-by-run)</td></tr>
+      <tr><td><strong>Core Data Structure</strong></td><td>torch.Tensor</td></tr>
+      <tr><td><strong>Autograd</strong></td><td>Automatic differentiation via torch.autograd</td></tr>
+      <tr><td><strong>GPU Support</strong></td><td>CUDA (NVIDIA), MPS (Apple), ROCm (AMD)</td></tr>
+      <tr><td><strong>Research Dominance</strong></td><td>~75%+ of major AI conference papers</td></tr>
+      <tr><td><strong>GitHub Stars</strong></td><td>80,000+</td></tr>
+      <tr><td><strong>Contributors</strong></td><td>3,000+</td></tr>
+      <tr><td><strong>Notable Users</strong></td><td>Meta, OpenAI, Tesla, Hugging Face, DeepMind</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <h3>Key Terms Glossary</h3>
+
+  <table>
+    <thead>
+      <tr><th>Term</th><th>Definition</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Tensor</strong></td><td>A multi-dimensional array (like NumPy ndarray, but with GPU and gradient support)</td></tr>
+      <tr><td><strong>Autograd</strong></td><td>PyTorch's automatic differentiation engine — computes gradients automatically</td></tr>
+      <tr><td><strong>Computation Graph</strong></td><td>A DAG (directed acyclic graph) of operations recorded during the forward pass</td></tr>
+      <tr><td><strong>Backpropagation</strong></td><td>The algorithm for computing gradients by traversing the computation graph backwards</td></tr>
+      <tr><td><strong>nn.Module</strong></td><td>The base class for all PyTorch neural networks</td></tr>
+      <tr><td><strong>Loss Function</strong></td><td>A measure of how wrong the model's predictions are</td></tr>
+      <tr><td><strong>Optimizer</strong></td><td>An algorithm (SGD, Adam) that updates model weights to minimize loss</td></tr>
+      <tr><td><strong>Epoch</strong></td><td>One complete pass through the entire training dataset</td></tr>
+      <tr><td><strong>Batch</strong></td><td>A subset of training data processed together in one forward/backward pass</td></tr>
+      <tr><td><strong>CUDA</strong></td><td>NVIDIA's GPU programming platform — enables PyTorch to use GPUs</td></tr>
+      <tr><td><strong>TorchScript</strong></td><td>A way to serialize and optimize PyTorch models for production</td></tr>
+      <tr><td><strong>torch.compile()</strong></td><td>PyTorch 2.0's compiler for automatic performance optimization</td></tr>
+      <tr><td><strong>Transfer Learning</strong></td><td>Using a pretrained model as a starting point for a new task</td></tr>
+      <tr><td><strong>ONNX</strong></td><td>Open Neural Network Exchange — a format for sharing models between frameworks</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <div class="callout success">
+    <strong>Document Complete — Day 1 ✓</strong>
+    You now have a comprehensive introduction to PyTorch covering its history, architecture, core concepts, and ecosystem. This is your foundation. Everything from here builds on top of it.<br><br>
+    <strong>Next: Day 2 — Tensors Deep Dive</strong>
+  </div>
+
+  <div class="doc-footer">
+    <p><strong>Introduction to PyTorch — Day 1 Documentation</strong></p>
+    <p>Created with <span class="heart">♥</span> as part of the Daily PyTorch Learning Series</p>
+    <p style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:#aaa;">
+      CONSISTENCY BEATS INTENSITY · SHOW UP EVERY DAY
+    </p>
+  </div>
+
+  <span class="page-number">10</span>
+</div>
+
+</div>
+</body>
+</html>
