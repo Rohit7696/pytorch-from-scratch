@@ -9,7 +9,7 @@ and hands-on exercises.
 | Day | Topic | Status | Docs | Video |
 |-----|-------|--------|------|-------|
 | 01  | Introduction to PyTorch | ✅ Done | [View](https://shorturl.at/smeRY) | [Watch](https://youtu.be/Hq4CuUCLHao?si=yriwSjxZIENuBCac) |
-| 02  | Tensors Deep Dive | ✅ Done | [View](https://rohit7696.github.io/pytorch-from-scratch/day%202%20PyTorch%20Tensors/torch.html) | ⬜ Add Link |
+| 02  | Tensors Deep Dive | ✅ Done | [View](https://rohit7696.github.io/pytorch-from-scratch/day%202%20PyTorch%20Tensors/torch.html) | [Watch](https://youtu.be/7GVstezH00M?si=ctuf4kNCJsqDQvLH) |
 | 03  | PyTorch Auto-grad | ⬜ Next | - | - |
 
 ## Goal
