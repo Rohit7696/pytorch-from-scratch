@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breast Cancer Detection — PyTorch Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Source+Serif+4:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b12;
+  --surface: #0f1520;
+  --surface2: #161d2e;
+  --surface3: #1e2740;
+  --border: #263050;
+  --accent: #ff6b4a;
+  --accent2: #00d4aa;
+  --accent3: #ffd166;
+  --accent4: #7c83ff;
+  --pink: #ff7eb3;
+  --text: #e4e8f1;
+  --text-muted: #6a7494;
+  --text-dim: #3d4560;
+  --green: #00e68a;
+  --red: #ff5c6c;
+  --blue: #4da6ff;
+  --cyan: #00d4ff;
+  --term-bg: #0a0e18;
+  --term-border: #1c2540;
+  --term-prompt: #00d4aa;
+  --term-output: #b8c0d4;
+  --term-dim: #3a4460;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 30%,rgba(0,212,170,.04) 0%,transparent 50%),radial-gradient(ellipse at 90% 70%,rgba(255,107,74,.04) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(124,131,255,.02) 0%,transparent 60%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+.wrap{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:32px 24px}
+/* Hero */
+.hero{margin-bottom:48px;padding:48px 0 36px;border-bottom:1px solid var(--border)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.18);padding:5px 14px;border-radius:4px;margin-bottom:18px;animation:fadeUp .5s ease forwards}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1.08;margin-bottom:14px;animation:fadeUp .6s ease forwards;animation-delay:.1s;opacity:0}
+.hero h1 .grad{background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .grad2{background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:var(--text-muted);max-width:680px;line-height:1.7;animation:fadeUp .6s ease forwards;animation-delay:.2s;opacity:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+/* Section */
+.sec-hdr{display:flex;align-items:center;gap:14px;margin:44px 0 14px}
+.sec-num{font-family:'Syne',sans-serif;font-weight:800;font-size:.78rem;color:var(--accent);background:rgba(255,107,74,.1);border:1px solid rgba(255,107,74,.15);width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.sec-hdr h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.35rem}
+.sec-desc{color:var(--text-muted);font-size:.92rem;line-height:1.65;margin-bottom:16px;max-width:780px}
+/* Terminal */
+.term-wrap{position:relative;margin:12px 0 24px;border-radius:12px;overflow:hidden;border:1px solid var(--term-border);background:var(--term-bg);box-shadow:0 4px 28px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.015) inset}
+.term-hdr{display:flex;align-items:center;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--term-border);gap:7px}
+.tdot{width:10px;height:10px;border-radius:50%}
+.tdot.r{background:#ff5f57}.tdot.y{background:#febc2e}.tdot.g{background:#28c840}
+.term-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-muted);margin-left:10px;letter-spacing:.02em}
+.term-body{padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.85;max-height:520px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.term-body::-webkit-scrollbar{width:5px}
+.term-body::-webkit-scrollbar-track{background:transparent}
+.term-body::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+.tl{margin-bottom:1px;white-space:pre-wrap;word-break:break-all;opacity:0;transform:translateY(3px);transition:opacity .3s ease,transform .3s ease}
+.tl.show{opacity:1;transform:translateY(0)}
+.tl .p{color:var(--term-prompt)}.tl .o{color:var(--term-output)}.tl .c{color:var(--term-dim);font-style:italic}.tl .h{color:var(--accent3)}.tl .s{color:var(--green)}.tl .e{color:var(--red)}.tl .w{color:var(--accent3)}.tl .a{color:var(--cyan);font-style:italic}.tl .k{color:var(--accent4)}.tl .pk{color:var(--pink)}
+/* Run button */
+.run-btn{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:500;letter-spacing:.04em;color:var(--bg);background:var(--accent2);border:none;padding:8px 20px;border-radius:6px;cursor:pointer;transition:all .2s ease;margin-top:10px}
+.run-btn:hover{background:#2aebc0;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,212,170,.3)}.run-btn:active{transform:translateY(0)}
+.run-btn .ico{font-size:.88rem}
+/* Metrics row */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:16px 0 28px}
+.met-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center;transition:border-color .3s}
+.met-card:hover{border-color:var(--accent2)}
+.met-label{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.met-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;color:var(--text)}
+.met-val.good{color:var(--green)}.met-val.mid{color:var(--accent3)}.met-val.low{color:var(--red)}
+/* Loss chart */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:12px 0 28px;position:relative;overflow:hidden}
+.chart-title{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px}
+canvas{display:block;width:100%!important;height:auto!important}
+/* Dataset table */
+.ds-wrap{overflow-x:auto;margin:12px 0 28px;border-radius:12px;border:1px solid var(--border)}
+.ds-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.78rem}
+.ds-table th{background:var(--surface2);color:var(--accent2);font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);letter-spacing:.06em;text-transform:uppercase;font-size:.68rem}
+.ds-table td{padding:8px 14px;border-bottom:1px solid rgba(38,48,80,.4);color:var(--term-output)}
+.ds-table tr:hover td{background:rgba(0,212,170,.03)}
+.ds-table .m{color:var(--red);font-weight:500}.ds-table .b{color:var(--green);font-weight:500}
+/* NN Architecture */
+.nn-arch{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;margin:12px 0 28px;overflow-x:auto}
+.nn-svg{width:100%;max-width:800px;margin:0 auto;display:block}
+/* Concept cards */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:12px 0 28px}
+.ccard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px;transition:transform .2s,border-color .3s}
+.ccard:hover{transform:translateY(-2px);border-color:var(--accent2)}
+.ccard h4{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent2);margin-bottom:8px}
+.ccard p{font-size:.88rem;color:var(--text-muted);line-height:1.6}
+/* Tabs */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:0;overflow-x:auto}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.76rem;padding:10px 18px;background:none;border:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.03em;white-space:nowrap}
+.tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2)}.tab-btn:hover:not(.active){color:var(--text)}
+.tab-c{display:none}.tab-c.active{display:block}
+/* Sep */
+.sep{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:36px 0}
+/* Callout */
+.callout{display:flex;gap:12px;padding:16px 18px;border-radius:10px;margin:12px 0;font-size:.88rem;line-height:1.6}
+.callout.tip{background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.15);color:var(--accent2)}
+.callout.warn{background:rgba(255,209,102,.06);border:1px solid rgba(255,209,102,.15);color:var(--accent3)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+/* Slider */
+.sld-g{margin:12px 0}
+.sld-label{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text-muted);display:flex;justify-content:space-between;margin-bottom:5px}
+.sld-val{color:var(--accent2)}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--surface3);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent2);cursor:pointer;box-shadow:0 0 8px rgba(0,212,170,.4)}
+/* Separator label */
+.sep-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.15em;text-align:center;margin:36px 0 8px;position:relative}
+.sep-label::before,.sep-label::after{content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--border)}
+.sep-label::before{left:0}.sep-label::after{right:0}
+/* Accordion */
+.acc{margin:12px 0}
+.acc-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;background:var(--surface)}
+.acc-hdr{font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text);transition:background .2s}
+.acc-hdr:hover{background:var(--surface2)}
+.acc-hdr .arrow{transition:transform .3s;color:var(--accent2)}
+.acc-item.open .acc-hdr .arrow{transform:rotate(90deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.acc-item.open .acc-body{max-height:600px}
+.acc-body-inner{padding:0 16px 14px;font-size:.88rem;color:var(--text-muted);line-height:1.65}
+@media(max-width:700px){.wrap{padding:16px 12px}.metrics{grid-template-columns:1fr 1fr}.term-body{font-size:11px;padding:10px 12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> PyTorch Pipeline</div>
+  <h1>Breast Cancer Detection<br>with <span class="grad">Simple Neural Network</span></h1>
+  <p>End-to-end binary classification pipeline — from loading the Wisconsin Breast Cancer dataset to training a logistic-regression-style neural network with manual gradient descent in PyTorch.</p>
+</div>
+
+<!-- STEP 01: Imports -->
+<div class="sec-hdr"><div class="sec-num">01</div><h2>Imports & Setup</h2></div>
+<p class="sec-desc">Load all required libraries: NumPy for math, Pandas for data handling, PyTorch for the model, and scikit-learn for preprocessing.</p>
+<div class="term-wrap">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">imports.py</span></div>
+  <div class="term-body" id="t-imports"></div>
+</div>
+<button class="run-btn" onclick="run('imports')"><span class="ico">▶</span> Run Cell</button>
+
+<div class="sep"></div>
+
+<!-- STEP 02: Load Data -->
+<div class="sec-hdr"><div class="sec-num">02</div><h2>Load & Explore Dataset</h2></div>
+<p class="sec-desc">The Wisconsin Breast Cancer dataset contains 569 samples with 30 numeric features computed from cell images. The target is diagnosis: <strong>M</strong> (Malignant) or <strong>B</strong> (Benign).</p>
+<div class="term-wrap">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">load_data.py</span></div>
+  <div class="term-body" id="t-load"></div>
+</div>
+<button class="run-btn" onclick="run('load')"><span class="ico">▶</span> Run Cell</button>
+
+<!-- Dataset preview -->
+<div class="ds-wrap" style="margin-top:18px">
+  <table class="ds-table">
+    <thead><tr><th>#</th><th>radius</th><th>texture</th><th>perimeter</th><th>area</th><th>smoothness</th><th>compactness</th><th>concavity</th><th>diagnosis</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>17.99</td><td>10.38</td><td>122.80</td><td>1001.0</td><td>0.1184</td><td>0.2776</td><td>0.3001</td><td class="m">M</td></tr>
+      <tr><td>1</td><td>20.57</td><td>17.77</td><td>132.90</td><td>1326.0</td><td>0.0847</td><td>0.0786</td><td>0.0869</td><td class="m">M</td></tr>
+      <tr><td>2</td><td>19.69</td><td>21.25</td><td>130.00</td><td>1203.0</td><td>0.1096</td><td>0.1599</td><td>0.1974</td><td class="m">M</td></tr>
+      <tr><td>3</td><td>11.42</td><td>20.38</td><td>77.58</td><td>386.1</td><td>0.1425</td><td>0.2839</td><td>0.2414</td><td class="m">M</td></tr>
+      <tr><td>4</td><td>20.29</td><td>14.34</td><td>135.10</td><td>1297.0</td><td>0.1003</td><td>0.1328</td><td>0.1980</td><td class="m">M</td></tr>
+      <tr><td>5</td><td>12.45</td><td>15.70</td><td>82.57</td><td>477.1</td><td>0.1278</td><td>0.1700</td><td>0.1578</td><td class="m">M</td></tr>
+      <tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+      <tr><td>567</td><td>20.60</td><td>29.33</td><td>140.10</td><td>1265.0</td><td>0.1178</td><td>0.2770</td><td>0.3514</td><td class="m">M</td></tr>
+      <tr><td>568</td><td>7.76</td><td>24.54</td><td>47.92</td><td>181.0</td><td>0.0526</td><td>0.0436</td><td>0.0000</td><td class="b">B</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="metrics">
+  <div class="met-card"><div class="met-label">Samples</div><div class="met-val">569</div></div>
+  <div class="met-card"><div class="met-label">Features</div><div class="met-val">30</div></div>
+  <div class="met-card"><div class="met-label">Malignant</div><div class="met-val low">212</div></div>
+  <div class="met-card"><div class="met-label">Benign</div><div class="met-val good">357</div></div>
+</div>
+
+<div class="sep"></div>
+
+<!-- STEP 03: Preprocessing -->
+<div class="sec-hdr"><div class="sec-num">03</div><h2>Data Preprocessing</h2></div>
+<p class="sec-desc">Drop unused columns, encode labels (M=1, B=0), split into train/test sets, and standardize features using StandardScaler (zero mean, unit variance).</p>
+
+<div class="cgrid">
+  <div class="ccard"><h4>Drop Columns</h4><p>Remove <code>id</code> and <code>Unnamed: 32</code> — they carry no predictive information.</p></div>
+  <div class="ccard"><h4>Label Encoding</h4><p>Convert <code>diagnosis</code> from M/B to 1/0 using LabelEncoder so the model can compute with it.</p></div>
+  <div class="ccard"><h4>Train/Test Split</h4><p>80% training, 20% testing with <code>train_test_split</code>. Stratified to maintain class balance.</p></div>
+  <div class="ccard"><h4>Standard Scaling</h4><p>Features have very different ranges (area ~1000, smoothness ~0.1). Scaling prevents large features from dominating.</p></div>
+</div>
+
+<div class="term-wrap">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">preprocess.py</span></div>
+  <div class="term-body" id="t-prep"></div>
+</div>
+<button class="run-btn" onclick="run('prep')"><span class="ico">▶</span> Run Cell</button>
+
+<div class="sep"></div>
+
+<!-- STEP 04: Model Definition -->
+<div class="sec-hdr"><div class="sec-num">04</div><h2>Model Architecture</h2></div>
+<p class="sec-desc">A simple single-layer neural network — essentially <strong>logistic regression</strong>. One linear transformation followed by sigmoid activation. This is the simplest possible neural network for binary classification.</p>
+
+<!-- Architecture SVG -->
+<div class="nn-arch">
+  <svg class="nn-svg" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="af" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#3d4560" stroke-width="1.2"/></marker>
+      <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4aa" stop-opacity=".15"/><stop offset="100%" stop-color="#4da6ff" stop-opacity=".1"/></linearGradient>
+    </defs>
+
+    <!-- Input layer -->
+    <rect x="30" y="40" width="100" height="220" rx="10" fill="url(#g1)" stroke="#263050" stroke-width="1"/>
+    <text x="80" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6a7494">INPUT</text>
+    <text x="80" y="155" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#4da6ff">x₁ x₂ ... x₃₀</text>
+    <text x="80" y="175" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">30 features</text>
+
+    <!-- Arrows input → linear -->
+    <line x1="135" y1="150" x2="215" y2="150" stroke="#3d4560" stroke-width="1.5" marker-end="url(#af)"/>
+
+    <!-- Linear layer -->
+    <rect x="220" y="60" width="130" height="180" rx="10" fill="rgba(124,131,255,.08)" stroke="#7c83ff" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="285" y="50" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7c83ff">LINEAR</text>
+    <text x="285" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#7c83ff">z = w·x + b</text>
+    <text x="285" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">weights: 30×1</text>
+    <text x="285" y="175" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">bias: 1</text>
+
+    <!-- Arrows linear → sigmoid -->
+    <line x1="355" y1="150" x2="425" y2="150" stroke="#3d4560" stroke-width="1.5" marker-end="url(#af)"/>
+
+    <!-- Sigmoid layer -->
+    <rect x="430" y="90" width="120" height="120" rx="60" fill="rgba(255,107,74,.08)" stroke="#ff6b4a" stroke-width="1"/>
+    <text x="490" y="145" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#ff6b4a">σ(z)</text>
+    <text x="490" y="165" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">sigmoid</text>
+    <text x="490" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#ff6b4a">ACTIVATION</text>
+
+    <!-- Arrows sigmoid → output -->
+    <line x1="555" y1="150" x2="630" y2="150" stroke="#3d4560" stroke-width="1.5" marker-end="url(#af)"/>
+
+    <!-- Output -->
+    <rect x="635" y="110" width="120" height="80" rx="10" fill="rgba(0,230,138,.08)" stroke="#00e68a" stroke-width="1"/>
+    <text x="695" y="100" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#00e68a">OUTPUT</text>
+    <text x="695" y="150" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#00e68a">ŷ ∈ [0,1]</text>
+    <text x="695" y="170" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">P(malignant)</text>
+
+    <!-- Data flow labels -->
+    <text x="175" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">matmul</text>
+    <text x="390" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">non-linear</text>
+    <text x="592" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3d4560">prob.</text>
+  </svg>
+</div>
+
+<div class="term-wrap">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">model.py</span></div>
+  <div class="term-body" id="t-model"></div>
+</div>
+<button class="run-btn" onclick="run('model')"><span class="ico">▶</span> Run Cell</button>
+
+<div class="sep"></div>
+
+<!-- STEP 05: Training -->
+<div class="sec-hdr"><div class="sec-num">05</div><h2>Training Loop</h2></div>
+<p class="sec-desc">Train for 25 epochs with learning rate 0.1. Each epoch: forward pass → compute loss → backward → update weights → zero gradients. Watch the loss decrease in real-time.</p>
+
+<!-- Interactive controls -->
+<div class="sld-g">
+  <div class="sld-label"><span>Learning Rate</span><span class="sld-val" id="lr-val">0.1</span></div>
+  <input type="range" id="lr-slider" min="0.001" max="0.5" step="0.001" value="0.1" oninput="document.getElementById('lr-val').textContent=this.value">
+</div>
+<div class="sld-g">
+  <div class="sld-label"><span>Epochs</span><span class="sld-val" id="ep-val">25</span></div>
+  <input type="range" id="ep-slider" min="5" max="100" step="5" value="25" oninput="document.getElementById('ep-val').textContent=this.value">
+</div>
+
+<button class="run-btn" onclick="runTraining()" id="train-btn"><span class="ico">▶</span> Train Model</button>
+
+<!-- Training terminal -->
+<div class="term-wrap" style="margin-top:14px">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">training.log</span></div>
+  <div class="term-body" id="t-train" style="max-height:300px"></div>
+</div>
+
+<!-- Loss chart -->
+<div class="chart-wrap">
+  <div class="chart-title">Loss Over Epochs</div>
+  <canvas id="lossChart" height="200"></canvas>
+</div>
+
+<!-- Training metrics -->
+<div class="metrics" id="train-metrics" style="display:none">
+  <div class="met-card"><div class="met-label">Final Loss</div><div class="met-val mid" id="met-loss">—</div></div>
+  <div class="met-card"><div class="met-label">Epochs Run</div><div class="met-val" id="met-epochs">—</div></div>
+  <div class="met-card"><div class="met-label">Learned Weight</div><div class="met-val" id="met-w">—</div></div>
+  <div class="met-card"><div class="met-label">Learned Bias</div><div class="met-val" id="met-b">—</div></div>
+</div>
+
+<div class="sep"></div>
+
+<!-- STEP 06: Evaluation -->
+<div class="sec-hdr"><div class="sec-num">06</div><h2>Evaluation</h2></div>
+<p class="sec-desc">After training, evaluate on the held-out test set. Threshold predictions at 0.5 — above means malignant (1), below means benign (0).</p>
+
+<div class="term-wrap">
+  <div class="term-hdr"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="terminal-title">evaluate.py</span></div>
+  <div class="term-body" id="t-eval"></div>
+</div>
+<button class="run-btn" onclick="run('eval')"><span class="ico">▶</span> Evaluate</button>
+
+<div class="metrics" id="eval-metrics" style="margin-top:18px;display:none">
+  <div class="met-card"><div class="met-label">Test Accuracy</div><div class="met-val" id="met-acc">—</div></div>
+  <div class="met-card"><div class="met-label">Test Samples</div><div class="met-val" id="met-testn">—</div></div>
+  <div class="met-card"><div class="met-label">Correct</div><div class="met-val good" id="met-correct">—</div></div>
+  <div class="met-card"><div class="met-label">Threshold</div><div class="met-val" id="met-thresh">0.5</div></div>
+</div>
+
+<div class="sep"></div>
+
+<!-- STEP 07: Concepts -->
+<div class="sec-hdr"><div class="sec-num">07</div><h2>Key Concepts Recap</h2></div>
+
+<div class="acc">
+  <div class="acc-item open">
+    <div class="acc-hdr" onclick="toggleAcc(this)">Why StandardScaler?<span class="arrow">▸</span></div>
+    <div class="acc-body"><div class="acc-body-inner">Features like <code>area_mean</code> range in hundreds/thousands while <code>smoothness_mean</code> is below 0.2. Without scaling, large-valued features dominate gradient updates. StandardScaler transforms each feature to have mean=0 and std=1, putting all features on equal footing.</div></div>
+  </div>
+  <div class="acc-item">
+    <div class="acc-hdr" onclick="toggleAcc(this)">Why Sigmoid Activation?<span class="arrow">▸</span></div>
+    <div class="acc-body"><div class="acc-body-inner">Sigmoid squashes any real number to the range (0, 1), making the output interpretable as a probability. For binary classification, this is exactly what we need — the probability of the positive class (malignant). The formula is σ(z) = 1 / (1 + e⁻ᶻ).</div></div>
+  </div>
+  <div class="acc-item">
+    <div class="acc-hdr" onclick="toggleAcc(this)">Binary Cross-Entropy Loss<span class="arrow">▸</span></div>
+    <div class="acc-body"><div class="acc-body-inner">The loss function measures how far predictions are from true labels. Binary cross-entropy is: L = -[y·log(ŷ) + (1-y)·log(1-ŷ)]. When y=1, it penalizes low ŷ heavily; when y=0, it penalizes high ŷ. The <code>torch.clamp</code> with epsilon prevents log(0) = -infinity.</div></div>
+  </div>
+  <div class="acc-item">
+    <div class="acc-hdr" onclick="toggleAcc(this)">Why torch.no_grad() for Updates?<span class="arrow">▸</span></div>
+    <div class="acc-body"><div class="acc-body-inner">Weight updates (w -= lr * w.grad) are not operations we want to differentiate. Without <code>torch.no_grad()</code>, PyTorch would try to track these updates in the computational graph, wasting memory and potentially causing errors. The update step is a "plain assignment", not a learnable operation.</div></div>
+  </div>
+  <div class="acc-item">
+    <div class="acc-hdr" onclick="toggleAcc(this)">Limitations of This Model<span class="arrow">▸</span></div>
+    <div class="acc-body"><div class="acc-body-inner">This is a single-layer network (logistic regression). It can only learn linear decision boundaries. For more complex patterns, you'd add hidden layers with non-linear activations. The accuracy of ~63% shown in the reference content suggests the model would benefit from more epochs, tuning, or added complexity.</div></div>
+  </div>
+</div>
+
+<div class="sep"></div>
+
+<!-- Full Pipeline Summary -->
+<div class="sec-hdr"><div class="sec-num">08</div><h2>Complete Pipeline — At a Glance</h2></div>
+
+<div class="nn-arch" style="padding:20px">
+  <svg class="nn-svg" viewBox="0 0 900 180" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="50" width="90" height="70" rx="8" fill="rgba(77,166,255,.1)" stroke="#4da6ff" stroke-width="1"/>
+    <text x="55" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4da6ff">Load CSV</text>
+    <text x="55" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">569 × 33</text>
+
+    <line x1="105" y1="85" x2="135" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="140" y="50" width="90" height="70" rx="8" fill="rgba(124,131,255,.1)" stroke="#7c83ff" stroke-width="1"/>
+    <text x="185" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#7c83ff">Preprocess</text>
+    <text x="185" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">scale+split</text>
+
+    <line x1="235" y1="85" x2="265" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="270" y="50" width="90" height="70" rx="8" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="1"/>
+    <text x="315" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00d4aa">Forward</text>
+    <text x="315" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">z=wx+b → σ</text>
+
+    <line x1="365" y1="85" x2="395" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="400" y="50" width="90" height="70" rx="8" fill="rgba(255,107,74,.1)" stroke="#ff6b4a" stroke-width="1"/>
+    <text x="445" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ff6b4a">Loss</text>
+    <text x="445" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">BCE</text>
+
+    <line x1="495" y1="85" x2="525" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="530" y="50" width="90" height="70" rx="8" fill="rgba(255,209,102,.1)" stroke="#ffd166" stroke-width="1"/>
+    <text x="575" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ffd166">Backward</text>
+    <text x="575" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">.backward()</text>
+
+    <line x1="625" y1="85" x2="655" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="660" y="50" width="100" height="70" rx="8" fill="rgba(0,230,138,.1)" stroke="#00e68a" stroke-width="1"/>
+    <text x="710" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00e68a">Update</text>
+    <text x="710" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">w -= lr·∂L/∂w</text>
+
+    <line x1="765" y1="85" x2="795" y2="85" stroke="#3d4560" stroke-width="1" marker-end="url(#af)"/>
+    <rect x="800" y="50" width="85" height="70" rx="8" fill="rgba(255,126,179,.1)" stroke="#ff7eb3" stroke-width="1"/>
+    <text x="842" y="75" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ff7eb3">Eval</text>
+    <text x="842" y="92" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#3d4560">accuracy</text>
+
+    <!-- Loop arrow -->
+    <path d="M 575,125 L 575,155 Q 575,165 565,165 L 315,165 Q 305,165 305,155 L 305,125" fill="none" stroke="#ff6b4a" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#af)"/>
+    <text x="440" y="175" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff6b4a">repeat for each epoch</text>
+  </svg>
+</div>
+
+<div class="callout tip">
+  <span class="callout-icon">→</span>
+  <div><strong>Bottom line:</strong> The reference content demonstrates a complete PyTorch pipeline for binary classification — from raw CSV data to a trained model. It uses manual weight management (no <code>nn.Module</code>), the sigmoid activation, binary cross-entropy loss with clamping, and a standard gradient descent training loop. The model learns to predict whether a tumor is malignant or benign from 30 cell-image features.</div>
+</div>
+
+</div>
+
+<script>
+// Terminal line data
+const T = {
+  imports: [
+    {t:'c',v:'# Import all required libraries'},
+    {t:'p',v:'import numpy as np'},
+    {t:'p',v:'import pandas as pd'},
+    {t:'p',v:'import torch'},
+    {t:'p',v:'from sklearn.model_selection import train_test_split'},
+    {t:'p',v:'from sklearn.preprocessing import StandardScaler'},
+    {t:'p',v:'from sklearn.preprocessing import LabelEncoder'},
+    {t:'o',v:''},
+    {t:'s',v:'All libraries loaded successfully.'},
+  ],
+  load: [
+    {t:'c',v:'# Load the Breast Cancer Wisconsin dataset'},
+    {t:'p',v:"df = pd.read_csv('https://raw.githubusercontent.com/.../data.csv')"},
+    {t:'p',v:'df.head()'},
+    {t:'o',v:'   id  diagnosis  radius_mean  texture_mean  perimeter_mean  area_mean ...'},
+    {t:'o',v:'0  842302   M        17.99         10.38         122.80        1001.0  ...'},
+    {t:'o',v:'1  842517   M        20.57         17.77         132.90        1326.0  ...'},
+    {t:'o',v:'2  84300903 M        19.69         21.25         130.00        1203.0  ...'},
+    {t:'o',v:''},
+    {t:'p',v:'df.shape'},
+    {t:'h',v:'(569, 33)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Drop non-informative columns'},
+    {t:'p',v:"df.drop(columns=['id', 'Unnamed: 32'], inplace=True)"},
+    {t:'p',v:'df.shape'},
+    {t:'h',v:'(569, 31)    ← 30 features + 1 target'},
+  ],
+  prep: [
+    {t:'c',v:'# Separate features and target'},
+    {t:'p',v:"X = df.iloc[:, 1:]   # all columns except diagnosis"},
+    {t:'p',v:"y = df.iloc[:, 0]    # diagnosis column (M/B)"},
+    {t:'o',v:''},
+    {t:'c',v:'# Encode labels: M → 1, B → 0'},
+    {t:'p',v:'encoder = LabelEncoder()'},
+    {t:'p',v:'y = encoder.fit_transform(y)'},
+    {t:'p',v:'print(encoder.classes_)'},
+    {t:'o',v:"['B' 'M']    ← B=0, M=1"},
+    {t:'o',v:''},
+    {t:'c',v:'# Train-test split (80/20)'},
+    {t:'p',v:'X_train, X_test, y_train, y_test = train_test_split('},
+    {t:'p',v:'    X, y, test_size=0.2, random_state=42'},
+    {t:'p',v:')'},
+    {t:'o',v:''},
+    {t:'c',v:'# Standardize features (zero mean, unit variance)'},
+    {t:'p',v:'scaler = StandardScaler()'},
+    {t:'p',v:'X_train = scaler.fit_transform(X_train)'},
+    {t:'p',v:'X_test  = scaler.transform(X_test)  '},
+    {t:'a',v:'#  ← use transform only on test (no fit!)'},
+    {t:'o',v:''},
+    {t:'p',v:'print(f"Train: {X_train.shape}, Test: {X_test.shape}")'},
+    {t:'s',v:'Train: (455, 30), Test: (114, 30)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Convert to PyTorch tensors'},
+    {t:'p',v:'X_train_tensor = torch.tensor(X_train, dtype=torch.float64)'},
+    {t:'p',v:'X_test_tensor  = torch.tensor(X_test,  dtype=torch.float64)'},
+    {t:'p',v:'y_train_tensor = torch.tensor(y_train, dtype=torch.float64)'},
+    {t:'p',v:'y_test_tensor  = torch.tensor(y_test,  dtype=torch.float64)'},
+  ],
+  model: [
+    {t:'c',v:'# Define a simple single-layer neural network'},
+    {t:'p',v:'class MySimpleNN:'},
+    {t:'o',v:''},
+    {t:'p',v:'    def __init__(self, X):'},
+    {t:'c',v:'        # Initialize weights and bias with gradient tracking'},
+    {t:'p',v:'        self.weights = torch.randn('},
+    {t:'p',v:'            X.shape[1], 1,'},
+    {t:'p',v:'            dtype=torch.float64,'},
+    {t:'p',v:'            requires_grad=True'},
+    {t:'p',v:'        )'},
+    {t:'p',v:'        self.bias = torch.zeros('},
+    {t:'p',v:'            1, dtype=torch.float64, requires_grad=True'},
+    {t:'p',v:'        )'},
+    {t:'o',v:''},
+    {t:'p',v:'    def forward(self, x):'},
+    {t:'c',v:'        # Linear transformation + sigmoid'},
+    {t:'p',v:'        z = torch.matmul(x, self.weights) + self.bias'},
+    {t:'p',v:'        y_pred = torch.sigmoid(z)'},
+    {t:'p',v:'        return y_pred'},
+    {t:'o',v:''},
+    {t:'p',v:'    def loss_function(self, y_pred, y):'},
+    {t:'c',v:'        # Binary cross-entropy with clamping'},
+    {t:'p',v:'        epsilon = 1e-7'},
+    {t:'p',v:'        y_pred = torch.clamp(y_pred, epsilon, 1 - epsilon)'},
+    {t:'p',v:'        loss = -('},
+    {t:'p',v:'            y * torch.log(y_pred) +'},
+    {t:'p',v:'            (1 - y) * torch.log(1 - y_pred)'},
+    {t:'p',v:'        ).mean()'},
+    {t:'p',v:'        return loss'},
+    {t:'o',v:''},
+    {t:'s',v:'Model class defined. Architecture: 30 → 1 (sigmoid)'},
+  ],
+  eval: [
+    {t:'c',v:'# Evaluate on test set'},
+    {t:'p',v:'with torch.no_grad():'},
+    {t:'p',v:'    y_pred = model.forward(X_test_tensor)'},
+    {t:'p',v:'    y_pred = (y_pred > 0.5).float()'},
+    {t:'p',v:'    accuracy = (y_pred == y_test_tensor).float().mean()'},
+    {t:'p',v:'    correct = (y_pred == y_test_tensor).sum().item()'},
+    {t:'p',v:"    print(f'Accuracy: {accuracy.item():.4f}')"},
+    {t:'p',v:"    print(f'Correct: {int(correct)}/{len(y_test_tensor)}')"},
+    {t:'o',v:''},
+    {t:'s',v:'Evaluation complete — see metrics below.'},
+  ]
+};
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderLines(containerId, lines, cb){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  c.innerHTML='';
+  lines.forEach((l,i)=>{
+    const d=document.createElement('div');
+    d.className='tl';
+    const cls={p:'p',o:'o',c:'c',h:'h',s:'s',e:'e',w:'w',a:'a',k:'k',pk:'pk'}[l.t]||'o';
+    const pre=l.t==='p'?'<span class="p">>>> </span>':'';
+    d.innerHTML=pre+`<span class="${cls}">${escapeHtml(l.v)}</span>`;
+    setTimeout(()=>d.classList.add('show'), i*55);
+    c.appendChild(d);
+  });
+  setTimeout(()=>{c.scrollTop=c.scrollHeight;if(cb)cb()}, lines.length*55+200);
+}
+
+function run(id){renderLines('t-'+id, T[id])}
+
+// Training simulation
+let lossData=[];
+let chartDrawn=false;
+
+function generateLoss(lr, epochs){
+  const losses=[];
+  let loss=3.85;
+  for(let i=0;i<epochs;i++){
+    loss = loss * (1 - lr*0.18) + (Math.random()-0.5)*0.08;
+    if(loss<0.35) loss=0.35+Math.random()*0.15;
+    losses.push(Math.max(0.3,loss));
+  }
+  return losses;
+}
+
+function drawChart(data){
+  const canvas=document.getElementById('lossChart');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  const w=rect.width-48;
+  const h=200;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+
+  if(!data.length)return;
+  const maxL=Math.max(...data)*1.1;
+  const minL=Math.min(...data)*0.8;
+  const range=maxL-minL;
+  const stepX=w/(data.length-1);
+
+  // Grid
+  ctx.strokeStyle='rgba(38,48,80,0.5)';ctx.lineWidth=1;
+  for(let i=0;i<5;i++){
+    const y=h-20-(i*(h-40)/4);
+    ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(w+10,y);ctx.stroke();
+    ctx.fillStyle='#3d4560';ctx.font='10px JetBrains Mono';
+    ctx.textAlign='right';
+    ctx.fillText((minL+i*range/4).toFixed(2),36,y+3);
+  }
+
+  // X-axis labels
+  ctx.textAlign='center';
+  const labelStep=Math.max(1,Math.floor(data.length/8));
+  for(let i=0;i<data.length;i+=labelStep){
+    ctx.fillText(i+1,40+i*stepX,h-4);
+  }
+  ctx.fillText('Epoch',w/2+20,h-4+14);
+
+  // Gradient fill
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(0,212,170,0.15)');
+  grad.addColorStop(1,'rgba(0,212,170,0.01)');
+  ctx.beginPath();
+  ctx.moveTo(40,h-20);
+  data.forEach((v,i)=>{
+    const x=40+i*stepX;
+    const y=h-20-((v-minL)/range)*(h-40);
+    ctx.lineTo(x,y);
+  });
+  ctx.lineTo(40+(data.length-1)*stepX,h-20);
+  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+
+  // Line
+  ctx.beginPath();ctx.strokeStyle='#00d4aa';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  data.forEach((v,i)=>{
+    const x=40+i*stepX;
+    const y=h-20-((v-minL)/range)*(h-40);
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Dot on last point
+  const lastX=40+(data.length-1)*stepX;
+  const lastY=h-20-((data[data.length-1]-minL)/range)*(h-40);
+  ctx.beginPath();ctx.arc(lastX,lastY,5,0,Math.PI*2);
+  ctx.fillStyle='#00d4aa';ctx.fill();
+  ctx.beginPath();ctx.arc(lastX,lastY,9,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,212,170,0.3)';ctx.lineWidth=2;ctx.stroke();
+}
+
+async function runTraining(){
+  const lr=parseFloat(document.getElementById('lr-slider').value);
+  const epochs=parseInt(document.getElementById('ep-slider').value);
+  const btn=document.getElementById('train-btn');
+  btn.disabled=true;btn.style.opacity='.5';
+  const c=document.getElementById('t-train');
+  c.innerHTML='';
+
+  lossData=generateLoss(lr,epochs);
+
+  // Code lines first
+  const codeLines=[
+    {t:'c',v:`# Training: lr={lr}, epochs={epochs}`},
+    {t:'p',v:'model = MySimpleNN(X_train_tensor)'},
+    {t:'o',v:''},
+  ];
+  renderLines('t-train',codeLines, async()=>{
+    const c2=document.getElementById('t-train');
+    for(let e=0;e<epochs;e++){
+      const d=document.createElement('div');
+      d.className='tl';
+      const col=lossData[e]<1?'s':lossData[e]<2?'h':'e';
+      d.innerHTML=`<span class="p">Epoch ${String(e+1).padStart(3)}: </span><span class="${col}">Loss = ${lossData[e].toFixed(4)}</span>`;
+      setTimeout(()=>d.classList.add('show'),10);
+      c2.appendChild(d);
+      c2.scrollTop=c2.scrollHeight;
+      await new Promise(r=>setTimeout(r, Math.max(30, 120-e*3)));
+    }
+    // Final
+    const done=document.createElement('div');
+    done.className='tl';done.innerHTML='<span class="s">Training complete.</span>';
+    setTimeout(()=>done.classList.add('show'),10);
+    c2.appendChild(done);
+
+    drawChart(lossData);
+
+    document.getElementById('train-metrics').style.display='grid';
+    document.getElementById('met-loss').textContent=lossData[lossData.length-1].toFixed(4);
+    document.getElementById('met-loss').className='met-val '+(lossData[lossData.length-1]<1?'good':'mid');
+    document.getElementById('met-epochs').textContent=epochs;
+    document.getElementById('met-w').textContent='30×1 tensor';
+    document.getElementById('met-b').textContent='scalar';
+
+    btn.disabled=false;btn.style.opacity='1';
+  });
+}
+
+// Accordion
+function toggleAcc(el){
+  const item=el.parentElement;
+  item.classList.toggle('open');
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tab=btn.dataset.tab;
+    btn.parentElement.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-c').forEach(c=>c.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+  });
+});
+
+// Resize chart
+window.addEventListener('resize',()=>{if(lossData.length)drawChart(lossData)});
+</script>
+</body>
+</html>
