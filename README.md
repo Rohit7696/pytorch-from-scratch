@@ -12,6 +12,7 @@ and hands-on exercises.
 | 02  | Tensors Deep Dive | ✅ Done | [View](https://rohit7696.github.io/pytorch-from-scratch/day%202%20PyTorch%20Tensors/torch.html) | [Watch](https://youtu.be/7GVstezH00M?si=ctuf4kNCJsqDQvLH) |
 | 03  | PyTorch Auto-grad | ✅ Done | [View](https://rohit7696.github.io/pytorch-from-scratch/day%203%20PyTorch%20AutoGrads/Autograds.html) | [Watch](https://youtu.be/BUKlMJp4lao?si=0tcSEjEr-38yyHdp) |
 | 04  | PyTorch Training Pipeline | ✅ Done | [View](https://rohit7696.github.io/pytorch-from-scratch/day%204%20PyTorch%20Training%20Pipeline/training_pipeline.html) | [Watch](https://youtu.be/qmuawcOvc0w?si=zDnDzHPA-ms1qh3b) |
+| 05  | PyTorch nn Module | Wait | Under Progress | Under Progress |
 
 ## Goal
 
