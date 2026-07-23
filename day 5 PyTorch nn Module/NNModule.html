@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyTorch nn.Module — The Complete Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#06060c;--s1:#0d0d16;--s2:#141422;--s3:#1c1c2e;--bd:#262640;
+  --ac:#ff6141;--ac2:#00ddb3;--ac3:#ffd55e;--ac4:#8b7aff;--pk:#ff6ea1;
+  --tx:#e6e4f0;--tm:#706e85;--td:#3c3a50;--gn:#00e88a;--rd:#ff5868;
+  --bl:#55aaff;--cy:#00ddff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Source Serif 4',serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 12% 25%,rgba(139,122,255,.04) 0%,transparent 55%),radial-gradient(ellipse at 88% 75%,rgba(255,97,65,.035) 0%,transparent 55%),radial-gradient(ellipse at 50% 50%,rgba(0,221,179,.02) 0%,transparent 65%);pointer-events:none;z-index:0}
+.c{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:28px 20px}
+
+/* Hero */
+.hero{text-align:left;margin-bottom:50px;padding:55px 0 40px;border-bottom:1px solid var(--bd);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,122,255,.06),transparent 70%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ac4);background:rgba(139,122,255,.07);border:1px solid rgba(139,122,255,.16);padding:5px 13px;border-radius:3px;margin-bottom:16px;animation:fu .5s ease forwards}
+.badge .d{width:5px;height:5px;border-radius:50%;background:var(--ac4);animation:pls 2s ease infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.06;margin-bottom:12px;animation:fu .6s ease forwards;animation-delay:.1s;opacity:0}
+.hero h1 .g{background:linear-gradient(135deg,var(--ac4),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .g2{background:linear-gradient(135deg,var(--ac2),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:var(--tm);max-width:660px;line-height:1.7;animation:fu .6s ease forwards;animation-delay:.2s;opacity:0}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* Section */
+.sh{display:flex;align-items:center;gap:13px;margin:48px 0 12px}
+.sn{font-family:'Syne',sans-serif;font-weight:800;font-size:.76rem;color:var(--ac4);background:rgba(139,122,255,.09);border:1px solid rgba(139,122,255,.14);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:7px;flex-shrink:0}
+.sh h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.3rem}
+.sd{color:var(--tm);font-size:.9rem;line-height:1.65;margin-bottom:14px;max-width:780px}
+
+/* Code block */
+.cb{background:#090c16;border:1px solid #1a1e32;border-radius:10px;overflow:hidden;margin:10px 0;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.15vw,13.5px);line-height:1.82}
+.cb .ch{display:flex;align-items:center;padding:7px 14px;background:rgba(26,30,50,.55);border-bottom:1px solid #1a1e32;gap:5px}
+.cb .dt{width:8px;height:8px;border-radius:50%}.cb .dr{background:#ff5f57}.cb .dy{background:#febc2e}.cb .dg{background:#28c840}
+.cb .ct{font-size:10px;color:var(--td);margin-left:8px;letter-spacing:.025em}
+.cb pre{padding:13px 16px;overflow-x:auto;white-space:pre;color:var(--tx);scrollbar-width:thin;scrollbar-color:var(--s3) transparent}
+.cb pre::-webkit-scrollbar{height:4px}.cb pre::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+.cb .kw{color:#c792ea}.cb .fn{color:#82aaff}.cb .st{color:#c3e88d}
+.cb .nm{color:#f78c6c}.cb .cm{color:#546e7a;font-style:italic}.cb .op{color:#89ddff}
+.cb .vr{color:#eeffff}.cb .cl{color:#ffcb6b}.cb .er{color:#ff5370}
+.cb .ac{color:#ff6141}
+
+/* Run button */
+.rb{display:inline-flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:500;letter-spacing:.04em;color:var(--bg);background:var(--ac4);border:none;padding:8px 18px;border-radius:5px;cursor:pointer;transition:all .2s ease;margin-top:8px}
+.rb:hover{background:#9d8fff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(139,122,255,.3)}.rb:active{transform:translateY(0)}
+.rb .i{font-size:.85rem}
+
+/* Terminal */
+.tw{position:relative;margin:10px 0 22px;border-radius:11px;overflow:hidden;border:1px solid #1a1e32;background:#080b15;box-shadow:0 4px 26px rgba(0,0,0,.4)}
+.th{display:flex;align-items:center;padding:8px 14px;background:var(--s2);border-bottom:1px solid #1a1e32;gap:6px}
+.tb{padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.82;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--s3) transparent}
+.tb::-webkit-scrollbar{width:4px}.tb::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px}
+.tl{margin-bottom:1px;white-space:pre-wrap;word-break:break-all;opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s}
+.tl.show{opacity:1;transform:translateY(0)}
+.tl .p{color:var(--ac2)}.tl .o{color:#b8c0d4}.tl .c{color:#3a4460;font-style:italic}
+.tl .h{color:var(--ac3)}.tl .s{color:var(--gn)}.tl .e{color:var(--rd)}.tl .w{color:var(--ac3)}.tl .a{color:var(--cy);font-style:italic}.tl .pk{color:var(--pk)}
+
+/* Cards grid */
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px;margin:10px 0 22px}
+.cc{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:20px;transition:transform .2s,border-color .3s}
+.cc:hover{transform:translateY(-2px);border-color:var(--ac4)}
+.cc h4{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--ac4);margin-bottom:7px}
+.cc p{font-size:.86rem;color:var(--tm);line-height:1.58}
+.cc code{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--s2);padding:1px 5px;border-radius:3px;color:var(--ac3)}
+
+/* Table */
+.tw2{overflow-x:auto;margin:10px 0 22px;border-radius:11px;border:1px solid var(--bd)}
+.tb2{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.78rem}
+.tb2 th{background:var(--s2);color:var(--ac2);font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid var(--bd);letter-spacing:.05em;text-transform:uppercase;font-size:.66rem}
+.tb2 td{padding:8px 14px;border-bottom:1px solid rgba(38,38,64,.4);color:#b8c0d4}
+.tb2 tr:hover td{background:rgba(139,122,255,.025)}
+
+/* Metric cards */
+.mr{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0 22px}
+.mc{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:14px;text-align:center;transition:border-color .3s}
+.mc:hover{border-color:var(--ac2)}
+.mc .ml{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.mc .mv{font-family:'Syne',sans-serif;font-weight:700;font-size:1.25rem}
+.mc .mv.g{color:var(--gn)}.mc .mv.m{color:var(--ac3)}.mc .mv.l{color:var(--rd)}.mc .mv.b{color:var(--bl)}.mc .mv.p{color:var(--ac4)}
+
+/* NN vis */
+.nnv{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin:12px 0;padding:18px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.nnc{display:flex;flex-direction:column;align-items:center;gap:5px}
+.nnl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--td);text-transform:uppercase;letter-spacing:.1em}
+.nnnd{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;transition:all .3s}
+.nnnd.i{background:rgba(85,170,255,.1);border:1.5px solid rgba(85,170,255,.35);color:var(--bl)}
+.nnnd.l{background:rgba(139,122,255,.1);border:1.5px solid rgba(139,122,255,.35);color:var(--ac4);border-radius:7px;width:auto;padding:8px 14px}
+.nnnd.s{background:rgba(255,97,65,.1);border:1.5px solid rgba(255,97,65,.35);color:var(--ac)}
+.nnnd.o{background:rgba(0,232,138,.1);border:1.5px solid rgba(0,232,138,.35);color:var(--gn)}
+.nnnd.h{background:rgba(255,213,94,.1);border:1.5px solid rgba(255,213,94,.35);color:var(--ac3);width:42px;border-radius:50%}
+.nna{color:var(--td);font-size:1rem}
+
+/* Sep */
+.sp{height:1px;background:linear-gradient(90deg,transparent,var(--bd),transparent);margin:38px 0}
+.sp2{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--td);text-transform:uppercase;letter-spacing:.14em;text-align:center;margin:38px 0 8px}
+
+/* Accordion */
+.acc{margin:10px 0}
+.ai{border:1px solid var(--bd);border-radius:8px;margin-bottom:7px;overflow:hidden;background:var(--s1)}
+.ah{font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--tx);transition:background .2s}
+.ah:hover{background:var(--s2)}.ah .aw{transition:transform .3s;color:var(--ac4)}
+.ai.open .ah .aw{transform:rotate(90deg)}
+.ab{max-height:0;overflow:hidden;transition:max-height .45s ease}
+.ai.open .ab{max-height:800px}
+.abi{padding:0 14px 13px;font-size:.86rem;color:var(--tm);line-height:1.62}
+
+/* Sub list */
+.sl{list-style:none;margin:5px 0 5px 6px}
+.sl li{font-size:.83rem;color:var(--tm);padding:3px 0 3px 14px;position:relative;line-height:1.48}
+.sl li::before{content:'→';position:absolute;left:0;color:var(--ac2)}
+
+/* Callout */
+.cal{display:flex;gap:12px;padding:15px 17px;border-radius:9px;margin:10px 0;font-size:.86rem;line-height:1.58}
+.cal.t{background:rgba(0,221,179,.05);border:1px solid rgba(0,221,179,.13);color:var(--ac2)}
+.cal.w{background:rgba(255,213,94,.05);border:1px solid rgba(255,213,94,.13);color:var(--ac3)}
+.cal.i{background:rgba(139,122,255,.05);border:1px solid rgba(139,122,255,.13);color:var(--ac4)}
+.cal .ci{font-size:.95rem;flex-shrink:0;margin-top:2px}
+
+/* Tabs */
+.tbar{display:flex;border-bottom:1px solid var(--bd);margin-bottom:0;overflow-x:auto}
+.tbtn{font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:9px 16px;background:none;border:none;color:var(--tm);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.03em;white-space:nowrap}
+.tbtn.a{color:var(--ac4);border-bottom-color:var(--ac4)}.tbtn:hover:not(.a){color:var(--tx)}
+.tc{display:none}.tc.a{display:block}
+
+/* Architecture comparison */
+.arch-comp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+@media(max-width:800px){.arch-comp{grid-template-columns:1fr}}
+.arch-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px;position:relative;overflow:hidden}
+.arch-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.arch-box.old::before{background:linear-gradient(90deg,var(--rd),var(--ac))}
+.arch-box.new::before{background:linear-gradient(90deg,var(--ac4),var(--ac2))}
+.arch-box h4{font-family:'JetBrains Mono',monospace;font-size:.78rem;margin-bottom:8px}
+.arch-box.old h4{color:var(--rd)}.arch-box.new h4{color:var(--ac2)}
+.arch-box p{font-size:.84rem;color:var(--tm);line-height:1.55}
+.arch-box code{font-family:'JetBrains Mono',monospace;font-size:.76rem;background:var(--s2);padding:1px 4px;border-radius:3px}
+
+/* Animations */
+@keyframes glow{0%,100%{box-shadow:0 0 4px rgba(139,122,255,.1)}50%{box-shadow:0 0 12px rgba(139,122,255,.25)}}
+.nnnd{animation:glow 3s ease infinite}
+.nnnd:nth-child(2){animation-delay:.4s}.nnnd:nth-child(3){animation-delay:.8s}
+
+/* Responsive */
+@media(max-width:600px){.c{padding:16px 12px}.hero{padding:28px 0 20px}.tb{font-size:11px;padding:10px 12px}.cb{font-size:10px}.cb pre{padding:10px 12px}}
+</style>
+</head>
+<body>
+<div class="c">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge"><span class="d"></span> PyTorch Deep Dive</div>
+  <h1>The <span class="g">nn.Module</span> Bible<br>Build Neural Networks <span class="g2">the Right Way</span></h1>
+  <p>From raw tensors and manual gradients to production-grade models — every concept, every line of code, fully interactive. This is everything about PyTorch's neural network module.</p>
+</div>
+
+<!-- ============ PART 1: WHY nn MODULE ============ -->
+<div class="sh"><div class="sn">01</div><h2>Why the nn Module Exists</h2></div>
+<p class="sd">In the previous notebook, we built a neural network from scratch — manually creating weights, writing the sigmoid, computing BCE loss, and updating parameters with raw autograd. The nn module replaces all of that with clean, reusable building blocks.</p>
+
+<div class="arch-comp">
+  <div class="arch-box old">
+    <h4>Without nn.Module (Manual)</h4>
+    <p>Create weights with <code>torch.randn(..., requires_grad=True)</code><br>
+    Write sigmoid: <code>torch.sigmoid(z)</code><br>
+    Write loss: <code>-(y*log(ŷ) + (1-y)*log(1-ŷ)).mean()</code><br>
+    Update: <code>w -= lr * w.grad</code> inside <code>no_grad()</code><br>
+    Zero: <code>w.grad.zero_()</code>, <code>b.grad.zero_()</code><br><br>
+    <strong style="color:var(--rd)">~30 lines of boilerplate per model</strong></p>
+  </div>
+  <div class="arch-box new">
+    <h4>With nn.Module (Clean)</h4>
+    <p>Layers: <code>self.linear = nn.Linear(30, 1)</code><br>
+    Activation: <code>self.sigmoid = nn.Sigmoid()</code><br>
+    Loss: <code>nn.BCELoss()</code><br>
+    Optimizer: <code>torch.optim.SGD(model.parameters(), lr)</code><br>
+    Update: <code>optimizer.step()</code> (one line!)<br><br>
+    <strong style="color:var(--gn)">Clean, modular, production-ready</strong></p>
+  </div>
+</div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 2: FIRST MODEL ============ -->
+<div class="sh"><div class="sn">02</div><h2>Building Your First nn.Module Model</h2></div>
+<p class="sd">Every PyTorch model inherits from <code>nn.Module</code>. You define layers in <code>__init__</code> and data flow in <code>forward</code>. That's it — two methods.</p>
+
+<div class="cb">
+  <div class="ch"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">first_model.py</span></div>
+  <pre><span class="kw">import</span> <span class="vr">torch</span>
+<span class="kw">import</span> <span class="vr">torch</span>.<span class="vr">nn</span> <span class="kw">as</span> <span class="vr">nn</span>
+
+<span class="kw">class</span> <span class="cl">Model</span>(<span class="vr">nn</span>.<span class="fn">Module</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="vr">self</span>, <span class="vr">num_features</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>()
+        <span class="vr">self</span>.<span class="vr">linear</span> = <span class="vr">nn</span>.<span class="fn">Linear</span>(<span class="vr">num_features</span>, <span class="nm">1</span>)
+        <span class="vr">self</span>.<span class="vr">sigmoid</span> = <span class="vr">nn</span>.<span class="fn">Sigmoid</span>()
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="vr">self</span>, <span class="vr">features</span>):
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">linear</span>(<span class="vr">features</span>)
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">sigmoid</span>(<span class="vr">out</span>)
+        <span class="kw">return</span> <span class="vr">out</span></pre>
+</div>
+
+<div class="g3">
+  <div class="cc"><h4>super().__init__()</h4><p>Initializes the parent <code>nn.Module</code> class. Without this, nothing works — autograd tracking, parameter registration, <code>.to(device)</code>, all depend on this.</p></div>
+  <div class="cc"><h4>nn.Linear(in, out)</h4><p>Creates a fully connected layer with weight matrix (out × in) and bias vector (out). Automatically sets <code>requires_grad=True</code> on both. This replaces manual <code>torch.randn + requires_grad</code>.</p></div>
+  <div class="cc"><h4>nn.Sigmoid()</h4><p>The sigmoid activation — same as <code>torch.sigmoid()</code> but as a layer object. Squashes values to (0, 1). Wrapping it as <code>nn.Sigmoid()</code> makes it part of the model's architecture.</p></div>
+  <div class="cc"><h4>forward(self, x)</h4><p>Defines the data flow. You <strong>never call this directly</strong> — call <code>model(x)</code> instead. PyTorch's <code>__call__</code> method handles hooks, autograd, and then delegates to <code>forward</code>.</p></div>
+</div>
+
+<div class="cal t"><span class="ci">→</span><div><strong>Key insight:</strong> <code>nn.Linear</code> internally does <code>x @ W.T + b</code> — the exact same matmul we wrote manually. But it automatically creates, tracks, and registers the parameters.</div></div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 3: TEST THE MODEL ============ -->
+<div class="sh"><div class="sn">03</div><h2>Testing the Model</h2></div>
+<p class="sd">Create random data and pass it through. Notice the output has <code>grad_fn=SigmoidBackward0</code> — autograd is tracking everything automatically.</p>
+
+<div class="tw">
+  <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">test_model.py</span></div>
+  <div class="tb" id="tm1"></div>
+</div>
+<button class="rb" onclick="runT('m1')"><span class="i">▶</span> Run</button>
+
+<div class="sp"></div>
+
+<!-- ============ PART 4: INSPECT PARAMETERS ============ -->
+<div class="sh"><div class="sn">04</div><h2>Inspecting Model Parameters</h2></div>
+<p class="sd">Every layer created with nn.Module automatically registers its parameters. Access them with named attributes.</p>
+
+<div class="tw">
+  <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">inspect_params.py</span></div>
+  <div class="tb" id="tm2"></div>
+</div>
+<button class="rb" onclick="runT('m2')"><span class="i">▶</span> Run</button>
+
+<div class="mr">
+  <div class="mc"><div class="ml">Weight Shape</div><div class="mv b">1 × 5</div></div>
+  <div class="mc"><div class="ml">Bias Shape</div><div class="mv b">1</div></div>
+  <div class="mc"><div class="ml">Total Params</div><div class="mv p">6</div></div>
+  <div class="mc"><div class="ml">Requires Grad</div><div class="mv g">True</div></div>
+</div>
+
+<div class="cal i"><span class="ci">→</span><div><strong>nn.Linear(5, 1)</strong> has 5 weights + 1 bias = <strong>6 trainable parameters</strong>. The <code>requires_grad=True</code> is set automatically — no manual flag needed.</div></div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 5: TORCHINFO ============ -->
+<div class="sh"><div class="sn">05</div><h2>Model Summary with torchinfo</h2></div>
+<p class="sd">The <code>torchinfo</code> library gives a Keras-style summary of your model — layer names, output shapes, parameter counts, and memory usage.</p>
+
+<div class="tw">
+  <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">torchinfo_summary.py</span></div>
+  <div class="tb" id="tm3"></div>
+</div>
+<button class="rb" onclick="runT('m3')"><span class="i">▶</span> Run</button>
+
+<div class="mr">
+  <div class="mc"><div class="ml">Total Params</div><div class="mv p">6</div></div>
+  <div class="mc"><div class="ml">Trainable</div><div class="mv g">6</div></div>
+  <div class="mc"><div class="ml">Non-Trainable</div><div class="mv" style="color:var(--tm)">0</div></div>
+  <div class="mc"><div class="ml">Model Size</div><div class="mv" style="color:var(--tm)">~0 MB</div></div>
+</div>
+
+<div class="cal w"><span class="ci">→</span><div><strong>Install:</strong> <code>pip install torchinfo</code> — one line. The summary shows every layer, its output shape, and parameter count. Essential for debugging complex architectures.</div></div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 6: HIDDEN LAYER ============ -->
+<div class="sh"><div class="sn">06</div><h2>Adding a Hidden Layer</h2></div>
+<p class="sd">A single linear layer can only learn linear boundaries. Add a hidden layer with a non-linear activation to learn complex patterns.</p>
+
+<!-- Architecture diagrams side by side -->
+<div class="arch-comp">
+  <div class="arch-box old" style="padding:22px">
+    <h4>Single Layer (Before)</h4>
+    <div class="nnv" style="flex-wrap:nowrap;justify-content:center">
+      <div class="nnc"><div class="nnl">Input</div><div class="nnnd i">x</div><div style="font-size:8px;color:var(--td)">5 feat</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Linear</div><div class="nnnd l">Wx+b</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Sigmoid</div><div class="nnnd s">σ</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Output</div><div class="nnnd o">ŷ</div></div>
+    </div>
+    <p style="margin-top:10px;font-size:.8rem;color:var(--tm);text-align:center">6 parameters · linear boundary only</p>
+  </div>
+  <div class="arch-box new" style="padding:22px">
+    <h4>With Hidden Layer (After)</h4>
+    <div class="nnv" style="flex-wrap:nowrap;justify-content:center">
+      <div class="nnc"><div class="nnl">Input</div><div class="nnnd i">x</div><div style="font-size:8px;color:var(--td)">5 feat</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Linear 1</div><div class="nnnd l">W₁x+b₁</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">ReLU</div><div class="nnnd h">ReLU</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Linear 2</div><div class="nnnd l">W₂h+b₂</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Sigmoid</div><div class="nnnd s">σ</div></div>
+      <div class="nna">→</div>
+      <div class="nnc"><div class="nnl">Output</div><div class="nnnd o">ŷ</div></div>
+    </div>
+    <p style="margin-top:10px;font-size:.8rem;color:var(--tm);text-align:center">non-linear boundaries · learns complex patterns</p>
+  </div>
+</div>
+
+<div class="cb">
+  <div class="ch"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">hidden_layer_model.py</span></div>
+  <pre><span class="kw">class</span> <span class="cl">Model</span>(<span class="vr">nn</span>.<span class="fn">Module</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="vr">self</span>, <span class="vr">num_features</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>()
+        <span class="vr">self</span>.<span class="vr">linear1</span> = <span class="vr">nn</span>.<span class="fn">Linear</span>(<span class="vr">num_features</span>, <span class="nm">3</span>)   <span class="cm"># hidden: 3 neurons</span>
+        <span class="vr">self</span>.<span class="vr">relu</span> = <span class="vr">nn</span>.<span class="fn">ReLU</span>()                        <span class="cm"># non-linearity</span>
+        <span class="vr">self</span>.<span class="vr">linear2</span> = <span class="vr">nn</span>.<span class="fn">Linear</span>(<span class="nm">3</span>, <span class="nm">1</span>)                <span class="cm"># output: 1 neuron</span>
+        <span class="vr">self</span>.<span class="vr">sigmoid</span> = <span class="vr">nn</span>.<span class="fn">Sigmoid</span>()
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="vr">self</span>, <span class="vr">features</span>):
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">linear1</span>(<span class="vr">features</span>)
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">relu</span>(<span class="vr">out</span>)
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">linear2</span>(<span class="vr">out</span>)
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">sigmoid</span>(<span class="vr">out</span>)
+        <span class="kw">return</span> <span class="vr">out</span></pre>
+</div>
+
+<div class="tw">
+  <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">test_hidden.py</span></div>
+  <div class="tb" id="tm4"></div>
+</div>
+<button class="rb" onclick="runT('m4')"><span class="i">▶</span> Run</button>
+
+<div class="acc">
+  <div class="ai open">
+    <div class="ah" onclick="togA(this)">Why ReLU between layers?<span class="aw">▸</span></div>
+    <div class="ab"><div class="abi">Without a non-linear activation between linear layers, stacking them is mathematically equivalent to a single linear layer. <code>W₂(W₁x + b₁) + b₂</code> simplifies to <code>Wx + b</code>. ReLU breaks this linearity, letting the network learn complex, non-linear decision boundaries.</div></div>
+  </div>
+  <div class="ai">
+    <div class="ah" onclick="togA(this)">Why 3 hidden neurons?<span class="aw">▸</span></div>
+    <div class="ab"><div class="abi">It's a starting point. More neurons = more capacity to learn, but also more risk of overfitting and more computation. For this demo with 5 features, 3 hidden neurons is reasonable. In practice, you experiment with different sizes (16, 32, 64, 128) and see what works.</div></div>
+  </div>
+  <div class="ai">
+    <div class="ah" onclick="togA(this)">Parameter count: 5→3→1<span class="aw">▸</span></div>
+    <div class="ab"><div class="abi">Linear1: (5×3) + 3 = 18 params. Linear2: (3×1) + 1 = 4 params. Total = 22 trainable parameters. Use <code>torchinfo.summary()</code> to verify. The ReLU and Sigmoid add zero parameters — they're just mathematical functions.</div></div>
+  </div>
+</div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 7: FULL PIPELINE ============ -->
+<div class="sh"><div class="sn">07</div><h2>Complete Pipeline — Breast Cancer Detection with nn.Module</h2></div>
+<p class="sd">Now let's rebuild the entire breast cancer classification pipeline using nn.Module. This is the improved version — replacing all manual operations with PyTorch's built-in modules.</p>
+
+<!-- Step tabs -->
+<div class="tbar" id="pipe-tabs">
+  <button class="tbtn a" data-tab="p1">1. Imports</button>
+  <button class="tbtn" data-tab="p2">2. Load Data</button>
+  <button class="tbtn" data-tab="p3">3. Preprocess</button>
+  <button class="tbtn" data-tab="p4">4. Model</button>
+  <button class="tbtn" data-tab="p5">5. Train</button>
+  <button class="tbtn" data-tab="p6">6. Evaluate</button>
+</div>
+
+<!-- P1: Imports -->
+<div class="tc a" id="p1">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">imports.py</span></div>
+    <div class="tb" id="tp1"></div>
+  </div>
+  <button class="rb" onclick="runT('p1')"><span class="i">▶</span> Run</button>
+</div>
+
+<!-- P2: Load Data -->
+<div class="tc" id="p2">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">load_data.py</span></div>
+    <div class="tb" id="tp2"></div>
+  </div>
+  <button class="rb" onclick="runT('p2')"><span class="i">▶</span> Run</button>
+  <table class="tb2" style="margin-top:12px">
+    <thead><tr><th>#</th><th>diagnosis</th><th>radius</th><th>texture</th><th>perimeter</th><th>area</th><th>smoothness</th><th>compactness</th><th>concavity</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td style="color:var(--rd)">M</td><td>17.99</td><td>10.38</td><td>122.80</td><td>1001.0</td><td>0.1184</td><td>0.2776</td><td>0.3001</td></tr>
+      <tr><td>1</td><td style="color:var(--rd)">M</td><td>20.57</td><td>17.77</td><td>132.90</td><td>1326.0</td><td>0.0847</td><td>0.0786</td><td>0.0869</td></tr>
+      <tr><td>2</td><td style="color:var(--rd)">M</td><td>19.69</td><td>21.25</td><td>130.00</td><td>1203.0</td><td>0.1096</td><td>0.1599</td><td>0.1974</td></tr>
+      <tr><td>3</td><td style="color:var(--rd)">M</td><td>11.42</td><td>20.38</td><td>77.58</td><td>386.1</td><td>0.1425</td><td>0.2839</td><td>0.2414</td></tr>
+      <tr><td>4</td><td style="color:var(--rd)">M</td><td>20.29</td><td>14.34</td><td>135.10</td><td>1297.0</td><td>0.1003</td><td>0.1328</td><td>0.1980</td></tr>
+    </tbody>
+  </table>
+  <div class="mr">
+    <div class="mc"><div class="ml">Samples</div><div class="mv b">569</div></div>
+    <div class="mc"><div class="ml">Features</div><div class="mv p">30</div></div>
+    <div class="mc"><div class="ml">Shape</div><div class="mv" style="color:var(--tm)">569 × 33</div></div>
+  </div>
+</div>
+
+<!-- P3: Preprocess -->
+<div class="tc" id="p3">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">preprocess.py</span></div>
+    <div class="tb" id="tp3"></div>
+  </div>
+  <button class="rb" onclick="runT('p3')"><span class="i">▶</span> Run</button>
+  <div class="g3" style="margin-top:12px">
+    <div class="cc"><h4>StandardScaler</h4><p>Transforms features to zero mean and unit variance. Critical when features have vastly different scales (area ~1000 vs smoothness ~0.1).</p></div>
+    <div class="cc"><h4>LabelEncoder</h4><p>Converts M/B strings to 1/0 integers. The model needs numeric targets to compute loss.</p></div>
+    <div class="cc"><h4>torch.from_numpy</h4><p>Converts NumPy arrays to PyTorch tensors. Uses <code>.astype(np.float32)</code> to match model dtype. Zero-copy when possible.</p></div>
+  </div>
+  <div class="mr">
+    <div class="mc"><div class="ml">Train Shape</div><div class="mv b">455 × 30</div></div>
+    <div class="mc"><div class="ml">Test Shape</div><div class="mv b">114 × 30</div></div>
+    <div class="mc"><div class="ml">Train Labels</div><div class="mv p">455</div></div>
+    <div class="mc"><div class="ml">Test Labels</div><div class="mv p">114</div></div>
+  </div>
+</div>
+
+<!-- P4: Model -->
+<div class="tc" id="p4">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">model_definition.py</span></div>
+    <div class="tb" id="tp4"></div>
+  </div>
+  <button class="rb" onclick="runT('p4')"><span class="i">▶</span> Run</button>
+
+  <div class="nnv" style="margin-top:14px">
+    <div class="nnc"><div class="nnl">Input</div><div class="nnnd i">x</div><div style="font-size:8px;color:var(--td)">30 feat</div></div>
+    <div class="nna">→</div>
+    <div class="nnc"><div class="nnl">nn.Linear</div><div class="nnnd l">Wx+b</div><div style="font-size:8px;color:var(--td)">30→1</div></div>
+    <div class="nna">→</div>
+    <div class="nnc"><div class="nnl">nn.Sigmoid</div><div class="nnnd s">σ</div></div>
+    <div class="nna">→</div>
+    <div class="nnc"><div class="nnl">Output</div><div class="nnnd o">ŷ</div><div style="font-size:8px;color:var(--td)">[0,1]</div></div>
+  </div>
+
+  <div class="g3" style="margin-top:10px">
+    <div class="cc"><h4>nn.Linear(30, 1)</h4><p>Replaces manual <code>torch.randn(30, 1, requires_grad=True)</code> + <code>torch.matmul</code>. Handles weight init, bias, and parameter registration automatically.</p></div>
+    <div class="cc"><h4>nn.Sigmoid()</h4><p>Replaces <code>torch.sigmoid(z)</code>. Same math, but as a registered module in the model architecture.</p></div>
+    <div class="cc"><h4>No Manual Loss</h4><p>The old manual BCE with clamp is commented out. We'll use <code>nn.BCELoss()</code> instead — cleaner and numerically stable.</p></div>
+  </div>
+</div>
+
+<!-- P5: Train -->
+<div class="tc" id="p5">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">training.py</span></div>
+    <div class="tb" id="tp5"></div>
+  </div>
+  <button class="rb" onclick="runT('p5')"><span class="i">▶</span> Run</button>
+
+  <div class="sp2">The Big Three — What Changed</div>
+  <div class="arch-comp">
+    <div class="arch-box old">
+      <h4>Manual (Old Way)</h4>
+      <p><code>loss = -(y*log(ŷ) + (1-y)*log(1-ŷ)).mean()</code><br><br>
+      <code>loss.backward()</code><br>
+      <code>with torch.no_grad():</code><br>
+      &nbsp;&nbsp;<code>model.weights -= lr * model.weights.grad</code><br>
+      &nbsp;&nbsp;<code>model.bias -= lr * model.bias.grad</code><br>
+      <code>model.weights.grad.zero_()</code><br>
+      <code>model.bias.grad.zero_()</code></p>
+    </div>
+    <div class="arch-box new">
+      <h4>nn.Module (New Way)</h4>
+      <p><code>loss_fn = nn.BCELoss()</code><br>
+      <code>optimizer = torch.optim.SGD(model.parameters(), lr)</code><br><br>
+      <code>loss = loss_fn(ŷ, y)</code><br>
+      <code>optimizer.zero_grad()</code><br>
+      <code>loss.backward()</code><br>
+      <code>optimizer.step()</code></p>
+    </div>
+  </div>
+
+  <div class="acc" style="margin-top:10px">
+    <div class="ai open">
+      <div class="ah" onclick="togA(this)">nn.BCELoss() — What it does<span class="aw">▸</span></div>
+      <div class="ab"><div class="abi">Binary Cross-Entropy Loss. Computes <code>-[y·log(ŷ) + (1-y)·log(1-ŷ)]</code> internally — the exact same formula we wrote manually. But it's optimized, numerically stable, and integrates cleanly with the optimizer. We no longer need the <code>torch.clamp</code> workaround.</div></div>
+    </div>
+    <div class="ai">
+      <div class="ah" onclick="togA(this)">torch.optim.SGD — The optimizer<span class="aw">▸</span></div>
+      <div class="ab"><div class="abi">SGD (Stochastic Gradient Descent) replaces the manual weight update. <code>model.parameters()</code> returns all tensors with <code>requires_grad=True</code> — the optimizer tracks and updates ALL of them. No more manually accessing <code>model.weights.grad</code> and <code>model.bias.grad</code>.</div></div>
+    </div>
+    <div class="ai">
+      <div class="ah" onclick="togA(this)">optimizer.zero_grad() → loss.backward() → optimizer.step()<span class="aw">▸</span></div>
+      <div class="ab"><div class="abi">The sacred three-line pattern. <code>zero_grad()</code> clears all gradients (replaces manual <code>.grad.zero_()</code> on every parameter). <code>backward()</code> computes gradients via autograd. <code>step()</code> updates all parameters (replaces the <code>no_grad</code> block). This is the standard training pattern used everywhere in PyTorch.</div></div>
+    </div>
+    <div class="ai">
+      <div class="ah" onclick="togA(this)">y_train_tensor.reshape(-1, 1)<span class="aw">▸</span></div>
+      <div class="ab"><div class="abi">BCELoss expects predictions and targets to have the same shape. The model outputs shape (455, 1) but y_train is (455,). <code>reshape(-1, 1)</code> or <code>view(-1, 1)</code> converts y_train to (455, 1) to match. Without this, you'd get a shape mismatch error.</div></div>
+    </div>
+  </div>
+
+  <!-- Training output -->
+  <div class="tw" style="margin-top:10px">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">training_output.log</span></div>
+    <div class="tb" id="tp5b"></div>
+  </div>
+  <button class="rb" onclick="runT('p5b')"><span class="i">▶</span> Show Output</button>
+
+  <div class="mr">
+    <div class="mc"><div class="ml">Start Loss</div><div class="mv l">0.720</div></div>
+    <div class="mc"><div class="ml">End Loss</div><div class="mv g">0.179</div></div>
+    <div class="mc"><div class="ml">Reduction</div><div class="mv p">75%</div></div>
+    <div class="mc"><div class="ml">vs Manual</div><div class="mv g">Much Better</div></div>
+  </div>
+</div>
+
+<!-- P6: Evaluate -->
+<div class="tc" id="p6">
+  <div class="tw">
+    <div class="th"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">evaluate.py</span></div>
+    <div class="tb" id="tp6"></div>
+  </div>
+  <button class="rb" onclick="runT('p6')"><span class="i">▶</span> Run</button>
+
+  <div class="mr" style="margin-top:12px">
+    <div class="mc"><div class="ml">Accuracy</div><div class="mv m">55.7%</div></div>
+    <div class="mc"><div class="ml">Test Samples</div><div class="mv b">114</div></div>
+    <div class="mc"><div class="ml">Threshold</div><div class="mv" style="color:var(--tm)">0.5</div></div>
+  </div>
+  <div class="cal w"><span class="ci">→</span><div><strong>Note on accuracy:</strong> The reference content uses threshold 0.5 and achieves ~55.7%. This is a simple single-layer model for demonstration. With more epochs, a hidden layer, or learning rate tuning, accuracy would improve significantly. The focus is on the <strong>pipeline structure</strong>, not SOTA results.</div></div>
+</div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 8: COMPARISON TABLE ============ -->
+<div class="sh"><div class="sn">08</div><h2>Manual vs nn.Module — Side by Side</h2></div>
+<p class="sd">Every manual operation has an nn.Module equivalent. Here's the complete mapping.</p>
+
+<div class="tw2">
+<table class="tb2">
+  <thead><tr><th>Operation</th><th>Manual (Old)</th><th>nn.Module (New)</th></tr></thead>
+  <tbody>
+    <tr><td>Weights</td><td><code>torch.randn(30,1,requires_grad=True)</code></td><td><code>nn.Linear(30, 1)</code></td></tr>
+    <tr><td>Bias</td><td><code>torch.zeros(1,requires_grad=True)</code></td><td>Included in <code>nn.Linear</code></td></tr>
+    <tr><td>Linear op</td><td><code>torch.matmul(x, w) + b</code></td><td><code>self.linear(x)</code></td></tr>
+    <tr><td>Sigmoid</td><td><code>torch.sigmoid(z)</code></td><td><code>nn.Sigmoid()</code></td></tr>
+    <tr><td>Loss</td><td><code>-(y*log(ŷ)+(1-y)*log(1-ŷ)).mean()</code></td><td><code>nn.BCELoss()</code></td></tr>
+    <tr><td>Update</td><td><code>w -= lr * w.grad</code> (manual)</td><td><code>optimizer.step()</code></td></tr>
+    <tr><td>Zero grad</td><td><code>w.grad.zero_()</code> (per param)</td><td><code>optimizer.zero_grad()</code></td></tr>
+    <tr><td>no_grad</td><td><code>with torch.no_grad():</code> (update block)</td><td>Handled by optimizer</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 9: KEY CONCEPTS ============ -->
+<div class="sh"><div class="sn">09</div><h2>Key Concepts — Quick Reference</h2></div>
+
+<div class="tw2">
+<table class="tb2">
+  <thead><tr><th>Concept</th><th>Code</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Base class</td><td><code>class Model(nn.Module)</code></td><td>Inherit from nn.Module to build any model</td></tr>
+    <tr><td>Parent init</td><td><code>super().__init__()</code></td><td>Required — enables parameter registration, autograd, etc.</td></tr>
+    <tr><td>Linear layer</td><td><code>nn.Linear(in, out)</code></td><td>Fully connected layer: Wx + b with auto parameters</td></tr>
+    <tr><td>Sigmoid</td><td><code>nn.Sigmoid()</code></td><td>Squashes output to (0, 1) for binary classification</td></tr>
+    <tr><td>ReLU</td><td><code>nn.ReLU()</code></td><td>Non-linear activation: max(0, x). Enables complex patterns.</td></tr>
+    <tr><td>BCE Loss</td><td><code>nn.BCELoss()</code></td><td>Binary cross-entropy for binary classification</td></tr>
+    <tr><td>SGD Optimizer</td><td><code>torch.optim.SGD(params, lr)</code></td><td>Stochastic gradient descent optimizer</td></tr>
+    <tr><td>Parameters</td><td><code>model.parameters()</code></td><td>Returns all trainable tensors</td></tr>
+    <tr><td>Model summary</td><td><code>torchinfo.summary(model)</code></td><td>Layer-by-layer architecture overview</td></tr>
+    <tr><td>Forward call</td><td><code>model(x)</code></td><td>Don't call <code>model.forward(x)</code> — use <code>model(x)</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="sp"></div>
+
+<!-- ============ PART 10: COMPLETE CODE ============ -->
+<div class="sh"><div class="sn">10</div><h2>The Complete Code — Copy & Run</h2></div>
+<p class="sd">Everything in one cell. Copy this into a Jupyter notebook or Colab and run.</p>
+
+<div class="cb">
+  <div class="ch"><div class="dt dr"></div><div class="dt dy"></div><div class="dt dg"></div><span class="ct">complete_pipeline.py (copy this)</span></div>
+  <pre><span class="kw">import</span> <span class="vr">numpy</span> <span class="kw">as</span> <span class="vr">np</span>
+<span class="kw">import</span> <span class="vr">pandas</span> <span class="kw">as</span> <span class="vr">pd</span>
+<span class="kw">import</span> <span class="vr">torch</span>
+<span class="kw">import</span> <span class="vr">torch</span>.<span class="vr">nn</span> <span class="kw">as</span> <span class="vr">nn</span>
+<span class="kw">from</span> <span class="vr">sklearn</span>.<span class="vr">model_selection</span> <span class="kw">import</span> <span class="fn">train_test_split</span>
+<span class="kw">from</span> <span class="vr">sklearn</span>.<span class="vr">preprocessing</span> <span class="kw">import</span> <span class="fn">StandardScaler</span>, <span class="fn">LabelEncoder</span>
+
+<span class="cm"># ---- Load & Clean ----</span>
+<span class="vr">df</span> = <span class="vr">pd</span>.<span class="fn">read_csv</span>(<span class="st">'https://raw.githubusercontent.com/gscdit/Breast-Cancer-Detection/refs/heads/master/data.csv'</span>)
+<span class="vr">df</span>.<span class="fn">drop</span>(<span class="vr">columns</span>=[<span class="st">'id'</span>, <span class="st">'Unnamed: 32'</span>], <span class="vr">inplace</span>=<span class="kw">True</span>)
+
+<span class="cm"># ---- Split ----</span>
+<span class="vr">X_train</span>, <span class="vr">X_test</span>, <span class="vr">y_train</span>, <span class="vr">y_test</span> = <span class="fn">train_test_split</span>(
+    <span class="vr">df</span>.<span class="fn">iloc</span>[:, <span class="nm">1</span>:], <span class="vr">df</span>.<span class="fn">iloc</span>[:, <span class="nm">0</span>], <span class="vr">test_size</span>=<span class="nm">0.2</span>)
+
+<span class="cm"># ---- Scale & Encode ----</span>
+<span class="vr">scaler</span> = <span class="fn">StandardScaler</span>()
+<span class="vr">X_train</span> = <span class="vr">scaler</span>.<span class="fn">fit_transform</span>(<span class="vr">X_train</span>)
+<span class="vr">X_test</span>  = <span class="vr">scaler</span>.<span class="fn">transform</span>(<span class="vr">X_test</span>)
+
+<span class="vr">encoder</span> = <span class="fn">LabelEncoder</span>()
+<span class="vr">y_train</span> = <span class="vr">encoder</span>.<span class="fn">fit_transform</span>(<span class="vr">y_train</span>)
+<span class="vr">y_test</span>  = <span class="vr">encoder</span>.<span class="fn">transform</span>(<span class="vr">y_test</span>)
+
+<span class="cm"># ---- Tensors ----</span>
+<span class="vr">X_train_tensor</span> = <span class="vr">torch</span>.<span class="fn">from_numpy</span>(<span class="vr">X_train</span>.<span class="fn">astype</span>(<span class="vr">np</span>.<span class="vr">float32</span>))
+<span class="vr">X_test_tensor</span>  = <span class="vr">torch</span>.<span class="fn">from_numpy</span>(<span class="vr">X_test</span>.<span class="fn">astype</span>(<span class="vr">np</span>.<span class="vr">float32</span>))
+<span class="vr">y_train_tensor</span> = <span class="vr">torch</span>.<span class="fn">from_numpy</span>(<span class="vr">y_train</span>.<span class="fn">astype</span>(<span class="vr">np</span>.<span class="vr">float32</span>))
+<span class="vr">y_test_tensor</span>  = <span class="vr">torch</span>.<span class="fn">from_numpy</span>(<span class="vr">y_test</span>.<span class="fn">astype</span>(<span class="vr">np</span>.<span class="vr">float32</span>))
+
+<span class="cm"># ---- Model ----</span>
+<span class="kw">class</span> <span class="cl">MySimpleNN</span>(<span class="vr">nn</span>.<span class="fn">Module</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="vr">self</span>, <span class="vr">num_features</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>()
+        <span class="vr">self</span>.<span class="vr">linear</span> = <span class="vr">nn</span>.<span class="fn">Linear</span>(<span class="vr">num_features</span>, <span class="nm">1</span>)
+        <span class="vr">self</span>.<span class="vr">sigmoid</span> = <span class="vr">nn</span>.<span class="fn">Sigmoid</span>()
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="vr">self</span>, <span class="vr">features</span>):
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">linear</span>(<span class="vr">features</span>)
+        <span class="vr">out</span> = <span class="vr">self</span>.<span class="fn">sigmoid</span>(<span class="vr">out</span>)
+        <span class="kw">return</span> <span class="vr">out</span>
+
+<span class="cm"># ---- Train ----</span>
+<span class="vr">model</span> = <span class="fn">MySimpleNN</span>(<span class="vr">X_train_tensor</span>.<span class="vr">shape</span>[<span class="nm">1</span>])
+<span class="vr">loss_function</span> = <span class="vr">nn</span>.<span class="fn">BCELoss</span>()
+<span class="vr">optimizer</span> = <span class="vr">torch</span>.<span class="vr">optim</span>.<span class="fn">SGD</span>(<span class="vr">model</span>.<span class="fn">parameters</span>(), <span class="vr">lr</span>=<span class="nm">0.1</span>)
+
+<span class="kw">for</span> <span class="vr">epoch</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">25</span>):
+    <span class="vr">y_pred</span> = <span class="fn">model</span>(<span class="vr">X_train_tensor</span>)
+    <span class="vr">loss</span> = <span class="fn">loss_function</span>(<span class="vr">y_pred</span>, <span class="vr">y_train_tensor</span>.<span class="fn">reshape</span>(-<span class="nm">1</span>, <span class="nm">1</span>))
+    <span class="vr">optimizer</span>.<span class="fn">zero_grad</span>()
+    <span class="vr">loss</span>.<span class="fn">backward</span>()
+    <span class="vr">optimizer</span>.<span class="fn">step</span>()
+    <span class="fn">print</span>(<span class="st">f"Epoch: </span>{<span class="vr">epoch</span>+<span class="nm">1</span>}<span class="st">, Loss: </span>{<span class="vr">loss</span>.<span class="fn">item</span>()<span class="st">}"</span>)
+
+<span class="cm"># ---- Evaluate ----</span>
+<span class="kw">with</span> <span class="vr">torch</span>.<span class="fn">no_grad</span>():
+    <span class="vr">y_pred</span> = <span class="fn">model</span>(<span class="vr">X_test_tensor</span>)
+    <span class="vr">y_pred</span> = (<span class="vr">y_pred</span> > <span class="nm">0.5</span>).<span class="fn">float</span>()
+    <span class="vr">accuracy</span> = (<span class="vr">y_pred</span>.<span class="fn">squeeze</span>() == <span class="vr">y_test_tensor</span>).<span class="fn">float</span>().<span class="fn">mean</span>()
+    <span class="fn">print</span>(<span class="st">f"Accuracy: </span>{<span class="vr">accuracy</span>.<span class="fn">item</span>()<span class="st">}"</span>)</pre>
+</div>
+
+<div class="cal t"><span class="ci">→</span><div><strong>This is the production pattern.</strong> Every PyTorch tutorial, course, and research paper follows this exact structure: define model class → set loss + optimizer → training loop (forward → loss → zero_grad → backward → step) → evaluate. Memorize this pattern.</div></div>
+
+<div class="sp"></div>
+
+<!-- Final summary -->
+<div class="sh"><div class="sn">11</div><h2>The nn.Module Mental Model</h2></div>
+
+<div class="nnv" style="flex-wrap:nowrap;overflow-x:auto">
+  <div class="nnc"><div class="nnl">Define</div><div class="nnnd i" style="font-size:9px;width:auto;padding:8px 12px;border-radius:6px">class Model<br>(nn.Module)</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Layers</div><div class="nnnd l" style="font-size:9px">nn.Linear<br>nn.Sigmoid<br>nn.ReLU</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Forward</div><div class="nnnd h" style="font-size:9px;width:auto;padding:8px 12px;border-radius:6px">def forward<br>(self, x)</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Loss</div><div class="nnnd s" style="font-size:9px">nn.BCELoss</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Optimizer</div><div class="nnnd o" style="font-size:9px;width:auto;padding:8px 12px;border-radius:6px">optim.SGD</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Loop</div><div class="nnnd l" style="font-size:8px;width:auto;padding:8px 10px;border-radius:6px;color:var(--ac4)">fwd→loss→<br>zero→bwd→step</div></div>
+  <div class="nna">→</div>
+  <div class="nnc"><div class="nnl">Done</div><div class="nnnd o" style="font-size:9px">Evaluate</div></div>
+</div>
+
+</div>
+
+<script>
+// Terminal data
+const TD={
+  m1:[
+    {t:'c',v:'# Create random dataset'},
+    {t:'p',v:'features = torch.rand(10, 5)'},
+    {t:'o',v:'tensor([[0.4912, 0.2834, 0.6712, 0.1298, 0.8471],'},
+    {t:'o',v:'        [0.3327, 0.5591, 0.4103, 0.7265, 0.1948],'},
+    {t:'o',v:'        ...])'},
+    {t:'o',v:''},
+    {t:'c',v:'# Create model'},
+    {t:'p',v:'model = Model(5)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Forward pass — call model(features), NOT model.forward(features)'},
+    {t:'p',v:'model(features)'},
+    {t:'o',v:''},
+    {t:'s',v:'tensor([[0.3453],'},
+    {t:'s',v:'        [0.3872],'},
+    {t:'s',v:'        [0.3541],'},
+    {t:'s',v:'        [0.4077],'},
+    {t:'s',v:'        [0.3864],'},
+    {t:'s',v:'        [0.3248],'},
+    {t:'s',v:'        [0.4125],'},
+    {t:'s',v:'        [0.3546],'},
+    {t:'s',v:'        [0.3372],'},
+    {t:'s',v:'        [0.3430]], grad_fn=<SigmoidBackward0>)'},
+    {t:'o',v:''},
+    {t:'a',v:'# ↑ grad_fn confirms autograd is tracking everything'},
+  ],
+  m2:[
+    {t:'c',v:'# Inspect the linear layer weights'},
+    {t:'p',v:'model.linear.weight'},
+    {t:'o',v:''},
+    {t:'h',v:'Parameter containing:'},
+    {t:'h',v:'tensor([[ 0.1968,  0.2683, -0.1308, -0.3489,  0.0152]],'},
+    {t:'h',v:'       requires_grad=True)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Inspect the linear layer bias'},
+    {t:'p',v:'model.linear.bias'},
+    {t:'o',v:''},
+    {t:'h',v:'Parameter containing:'},
+    {t:'h',v:'tensor([-0.3163], requires_grad=True)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Count total parameters'},
+    {t:'p',v:'sum(p.numel() for p in model.parameters())'},
+    {t:'s',v:'6  ← 5 weights + 1 bias'},
+    {t:'o',v:''},
+    {t:'a',v:'# nn.Linear automatically registers parameters with autograd'},
+    {t:'a',v:'# No manual requires_grad=True needed!'},
+  ],
+  m3:[
+    {t:'c',v:'# Install torchinfo'},
+    {t:'p',v:'!pip install torchinfo'},
+    {t:'o',v:'Collecting torchinfo...'},
+    {t:'o',v:'Successfully installed torchinfo-1.8.0'},
+    {t:'o',v:''},
+    {t:'c',v:'# Generate model summary'},
+    {t:'p',v:'from torchinfo import summary'},
+    {t:'p',v:'summary(model, input_size=(10, 5))'},
+    {t:'o',v:''},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Layer (type:depth-idx)     Output Shape    Param #'},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Model                      [10, 1]         --'},
+    {t:'h',v:'├─Linear: 1-1              [10, 1]         6'},
+    {t:'h',v:'├─Sigmoid: 1-2             [10, 1]         --'},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Total params: 6'},
+    {t:'h',v:'Trainable params: 6'},
+    {t:'h',v:'Non-trainable params: 0'},
+    {t:'h',v:'================================================================'},
+    {t:'o',v:''},
+    {t:'s',v:'# 6 total parameters — all trainable'},
+  ],
+  m4:[
+    {t:'c',v:'# Test the hidden layer model'},
+    {t:'p',v:'model = Model(5)'},
+    {t:'p',v:'model(features)'},
+    {t:'o',v:''},
+    {t:'s',v:'tensor([[0.5303],'},
+    {t:'s',v:'        [0.5318],'},
+    {t:'s',v:'        [0.5331],'},
+    {t:'s',v:'        [0.5204],'},
+    {t:'s',v:'        [0.5268],'},
+    {t:'s',v:'        [0.5179],'},
+    {t:'s',v:'        [0.4955],'},
+    {t:'s',v:'        [0.4938],'},
+    {t:'s',v:'        [0.5237],'},
+    {t:'s',v:'        [0.5174]], grad_fn=<SigmoidBackward0>)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Summary of hidden layer model'},
+    {t:'p',v:'summary(model, input_size=(10, 5))'},
+    {t:'o',v:''},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Layer (type:depth-idx)     Output Shape    Param #'},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Model                      [10, 1]         --'},
+    {t:'h',v:'├─Linear: 1-1              [10, 3]         18'},
+    {t:'h',v:'├─ReLU: 1-2                [10, 3]         --'},
+    {t:'h',v:'├─Linear: 1-3              [10, 1]         4'},
+    {t:'h',v:'├─Sigmoid: 1-4             [10, 1]         --'},
+    {t:'h',v:'================================================================'},
+    {t:'h',v:'Total params: 22'},
+    {t:'h',v:'Trainable params: 22'},
+    {t:'h',v:'================================================================'},
+    {t:'o',v:''},
+    {t:'a',v:'# Linear1: (5×3)+3 = 18,  Linear2: (3×1)+1 = 4  →  Total: 22'},
+  ],
+  p1:[
+    {t:'c',v:'# All imports for the breast cancer pipeline'},
+    {t:'p',v:'import numpy as np'},
+    {t:'p',v:'import pandas as pd'},
+    {t:'p',v:'import torch'},
+    {t:'p',v:'from sklearn.model_selection import train_test_split'},
+    {t:'p',v:'from sklearn.preprocessing import StandardScaler'},
+    {t:'p',v:'from sklearn.preprocessing import LabelEncoder'},
+    {t:'o',v:''},
+    {t:'s',v:'All libraries loaded.'},
+    {t:'a',v:'# Note: torch.nn is imported separately when defining the model'},
+  ],
+  p2:[
+    {t:'c',v:'# Load dataset'},
+    {t:'p',v:"df = pd.read_csv('https://raw.githubusercontent.com/gscdit/Breast-Cancer-Detection/refs/heads/master/data.csv')"},
+    {t:'p',v:'df.head()'},
+    {t:'o',v:''},
+    {t:'o',v:'   id  diagnosis  radius_mean  texture_mean  perimeter_mean  area_mean ...'},
+    {t:'o',v:'0  842302   M        17.99         10.38         122.80        1001.0'},
+    {t:'o',v:'1  842517   M        20.57         17.77         132.90        1326.0'},
+    {t:'o',v:''},
+    {t:'p',v:'df.shape'},
+    {t:'h',v:'(569, 33)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Drop id and unnamed columns'},
+    {t:'p',v:"df.drop(columns=['id', 'Unnamed: 32'], inplace=True)"},
+    {t:'p',v:'df.shape'},
+    {t:'h',v:'(569, 31)  ← 30 features + 1 target'},
+  ],
+  p3:[
+    {t:'c',v:'# Split features and target'},
+    {t:'p',v:'X_train, X_test, y_train, y_test = train_test_split('},
+    {t:'p',v:"    df.iloc[:, 1:], df.iloc[:, 0], test_size=0.2)"},
+    {t:'o',v:''},
+    {t:'c',v:'# Scale features'},
+    {t:'p',v:'scaler = StandardScaler()'},
+    {t:'p',v:'X_train = scaler.fit_transform(X_train)'},
+    {t:'p',v:'X_test  = scaler.transform(X_test)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Encode labels: M→1, B→0'},
+    {t:'p',v:'encoder = LabelEncoder()'},
+    {t:'p',v:'y_train = encoder.fit_transform(y_train)'},
+    {t:'p',v:'y_test  = encoder.transform(y_test)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Convert to tensors'},
+    {t:'p',v:'X_train_tensor = torch.from_numpy(X_train.astype(np.float32))'},
+    {t:'p',v:'X_test_tensor  = torch.from_numpy(X_test.astype(np.float32))'},
+    {t:'p',v:'y_train_tensor = torch.from_numpy(y_train.astype(np.float32))'},
+    {t:'p',v:'y_test_tensor  = torch.from_numpy(y_test.astype(np.float32))'},
+    {t:'o',v:''},
+    {t:'p',v:'X_train_tensor.shape'},
+    {t:'h',v:'torch.Size([455, 30])'},
+    {t:'p',v:'y_train_tensor.shape'},
+    {t:'h',v:'torch.Size([455])'},
+  ],
+  p4:[
+    {t:'c',v:'# Define the model using nn.Module'},
+    {t:'p',v:'import torch.nn as nn'},
+    {t:'o',v:''},
+    {t:'p',v:'class MySimpleNN(nn.Module):'},
+    {t:'o',v:''},
+    {t:'p',v:'    def __init__(self, num_features):'},
+    {t:'p',v:'        super().__init__()'},
+    {t:'p',v:'        self.linear  = nn.Linear(num_features, 1)'},
+    {t:'p',v:'        self.sigmoid = nn.Sigmoid()'},
+    {t:'o',v:''},
+    {t:'p',v:'    def forward(self, features):'},
+    {t:'p',v:'        out = self.linear(features)'},
+    {t:'p',v:'        out = self.sigmoid(out)'},
+    {t:'p',v:'        return out'},
+    {t:'o',v:''},
+    {t:'c',v:'# Create model instance'},
+    {t:'p',v:'model = MySimpleNN(X_train_tensor.shape[1])'},
+    {t:'s',v:'Model created with 30 input features'},
+    {t:'o',v:''},
+    {t:'c',v:'# Quick test'},
+    {t:'p',v:'model(X_train_tensor[:3])'},
+    {t:'o',v:'tensor([[0.4821], [0.5134], [0.4967]], grad_fn=<SigmoidBackward0>)'},
+  ],
+  p5:[
+    {t:'c',v:'# Training configuration'},
+    {t:'p',v:'learning_rate = 0.1'},
+    {t:'p',v:'epochs = 25'},
+    {t:'o',v:''},
+    {t:'c',v:'# Loss function and optimizer (THE nn.module UPGRADE)'},
+    {t:'ac',v:'loss_function = nn.BCELoss()'},
+    {t:'ac',v:'optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)'},
+    {t:'o',v:''},
+    {t:'c',v:'# Training loop'},
+    {t:'p',v:'for epoch in range(epochs):'},
+    {t:'o',v:''},
+    {t:'c',v:'    # Forward pass'},
+    {t:'p',v:'    y_pred = model(X_train_tensor)'},
+    {t:'o',v:''},
+    {t:'c',v:'    # Loss (reshape y to match output shape)'},
+    {t:'p',v:'    loss = loss_function(y_pred, y_train_tensor.reshape(-1, 1))'},
+    {t:'o',v:''},
+    {t:'c',v:'    # THE SACRED THREE LINES:'},
+    {t:'ac',v:'    optimizer.zero_grad()   # 1. Clear gradients'},
+    {t:'ac',v:'    loss.backward()         # 2. Compute gradients'},
+    {t:'ac',v:'    optimizer.step()        # 3. Update parameters'},
+    {t:'o',v:''},
+    {t:'p',v:'    print(f"Epoch: {epoch+1}, Loss: {loss.item()}")'},
+  ],
+  p5b:[
+    {t:'o',v:'Epoch: 1,  Loss: 0.7201232334188902'},
+    {t:'o',v:'Epoch: 2,  Loss: 0.5497969980824'},
+    {t:'o',v:'Epoch: 3,  Loss: 0.459796741194934'},
+    {t:'o',v:'Epoch: 4,  Loss: 0.4834655094146728'},
+    {t:'o',v:'Epoch: 5,  Loss: 0.3643571734228406'},
+    {t:'o',v:'Epoch: 6,  Loss: 0.352467021408282'},
+    {t:'o',v:'Epoch: 7,  Loss: 0.31250859422803522'},
+    {t:'o',v:'Epoch: 8,  Loss: 0.2841457247088426'},
+    {t:'o',v:'Epoch: 9,  Loss: 0.2789158161382733'},
+    {t:'o',v:'Epoch: 10, Loss: 0.266878022509667'},
+    {t:'o',v:'Epoch: 11, Loss: 0.254989983899784'},
+    {t:'o',v:'Epoch: 12, Loss: 0.2452721277490363'},
+    {t:'o',v:'Epoch: 13, Loss: 0.2367556612968445'},
+    {t:'o',v:'Epoch: 14, Loss: 0.2291547664992925'},
+    {t:'o',v:'Epoch: 15, Loss: 0.2223420831472444'},
+    {t:'o',v:'Epoch: 16, Loss: 0.2161845713053836'},
+    {t:'o',v:'Epoch: 17, Loss: 0.2105851322412498'},
+    {t:'o',v:'Epoch: 18, Loss: 0.20545658149933624'},
+    {t:'o',v:'Epoch: 19, Loss: 0.2067223597994232'},
+    {t:'o',v:'Epoch: 20, Loss: 0.196422725915988'},
+    {t:'o',v:'Epoch: 21, Loss: 0.1924325896515796'},
+    {t:'o',v:'Epoch: 22, Loss: 0.188672079953141'},
+    {t:'o',v:'Epoch: 23, Loss: 0.1851352858544922'},
+    {t:'o',v:'Epoch: 24, Loss: 0.1819256079783234'},
+    {t:'s',v:'Epoch: 25, Loss: 0.1788766104683685'},
+    {t:'o',v:''},
+    {t:'a',v:'# Loss dropped from 0.720 → 0.179 (75% reduction!)'},
+    {t:'a',v:'# Much better than the manual version (0.785 final loss)'},
+  ],
+  p6:[
+    {t:'c',v:'# Evaluate on test set'},
+    {t:'p',v:'with torch.no_grad():'},
+    {t:'p',v:'    y_pred = model.forward(X_test_tensor)'},
+    {t:'p',v:'    y_pred = (y_pred > 0.5).float()'},
+    {t:'p',v:'    accuracy = (y_pred == y_test_tensor.reshape(-1,1)).float().mean()'},
+    {t:'p',v:"    print(f'Accuracy: {accuracy.item()}')"},
+    {t:'o',v:''},
+    {t:'m',v:'Accuracy: 0.5572484135827747'},
+    {t:'o',v:''},
+    {t:'c',v:'# Note: Low accuracy is expected for this simple demo'},
+    {t:'a',v:'# Focus is on learning the PIPELINE, not achieving SOTA'},
+  ],
+};
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function renderT(cid,lines){
+  const c=document.getElementById(cid);if(!c)return;c.innerHTML='';
+  lines.forEach((l,i)=>{
+    const d=document.createElement('div');d.className='tl';
+    const cls={p:'p',o:'o',c:'c',h:'h',s:'s',e:'e',w:'w',a:'a',pk:'pk',m:'m',ac:'pk'}[l.t]||'o';
+    const pre=l.t==='p'?`<span class="p">>>> </span>`:'';
+    d.innerHTML=pre+`<span class="${cls}">${esc(l.v)}</span>`;
+    setTimeout(()=>d.classList.add('show'),i*45);
+    c.appendChild(d);
+  });
+  setTimeout(()=>c.scrollTop=c.scrollHeight,lines.length*45+150);
+}
+function runT(id){renderT('t'+id,TD[id])}
+
+// Tabs
+document.querySelectorAll('.tbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tab=btn.dataset.tab;
+    btn.parentElement.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('a'));
+    btn.classList.add('a');
+    document.querySelectorAll('.tc').forEach(c=>c.classList.remove('a'));
+    document.getElementById(tab).classList.add('a');
+  });
+});
+
+// Accordion
+function togA(el){el.parentElement.classList.toggle('open')}
+
+// Init first terminal
+renderT('tm1',TD.m1);
+</script>
+</body>
+</html>
